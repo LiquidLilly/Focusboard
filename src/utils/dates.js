@@ -35,15 +35,15 @@ export function formatFullDate(dateStr) {
 
 export function getDueDateColor(dateStr) {
   if (!dateStr) return ''
-  if (isOverdue(dateStr)) return 'text-red-600'
-  if (isDueSoon(dateStr)) return 'text-amber-600'
-  return 'text-stone-500'
+  if (isOverdue(dateStr)) return 'text-[#ff2020]'
+  if (isDueSoon(dateStr)) return 'text-[#ffb000]'
+  return 'text-[#444466]'
 }
 
 export function getDueDateBorderColor(dateStr) {
   if (!dateStr) return ''
-  if (isOverdue(dateStr)) return 'border-l-red-500'
-  if (isDueSoon(dateStr)) return 'border-l-amber-400'
+  if (isOverdue(dateStr)) return 'border-l-[#ff2020]'
+  if (isDueSoon(dateStr)) return 'border-l-[#ffb000]'
   return ''
 }
 

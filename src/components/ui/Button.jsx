@@ -1,12 +1,12 @@
 export function Button({ children, onClick, variant = 'default', size = 'md', disabled = false, className = '', type = 'button', ...props }) {
-  const base = 'font-mono border inline-flex items-center gap-1.5 cursor-pointer transition-colors duration-100 disabled:opacity-40 disabled:cursor-not-allowed'
+  const base = 'font-mono border inline-flex items-center gap-1.5 cursor-pointer transition-colors duration-100 disabled:opacity-30 disabled:cursor-not-allowed'
 
   const variants = {
-    default: 'bg-parchment text-charcoal border-warm-gray hover:bg-charcoal hover:text-parchment',
-    primary: 'bg-charcoal text-parchment border-charcoal hover:bg-stone-700',
-    danger: 'bg-parchment text-red-700 border-red-300 hover:bg-red-700 hover:text-white',
-    ghost: 'bg-transparent text-stone-600 border-transparent hover:border-warm-gray hover:bg-parchment',
-    amber: 'bg-amber-50 text-amber-800 border-amber-300 hover:bg-amber-800 hover:text-white',
+    default: 'bg-[#0d0d0d] text-[#e0e0e0] border-[#1e1e3a] hover:border-[#00fff7] hover:text-[#00fff7]',
+    primary: 'bg-[#00fff7] text-[#0d0d0d] border-[#00fff7] hover:bg-[#00fff7cc] font-bold',
+    danger:  'bg-[#0d0d0d] text-[#ff2020] border-[#ff202030] hover:bg-[#ff202015] hover:border-[#ff2020]',
+    ghost:   'bg-transparent text-[#444466] border-transparent hover:border-[#1e1e3a] hover:text-[#e0e0e0]',
+    amber:   'bg-[#ffb00010] text-[#ffb000] border-[#ffb00030] hover:bg-[#ffb000] hover:text-[#0d0d0d]',
   }
 
   const sizes = {

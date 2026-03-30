@@ -9,16 +9,16 @@ import { getDueDateColor, formatFullDate, isOverdue, isDueSoon } from '../../uti
 import { X, Plus, Trash2, Sparkles, Check } from 'lucide-react'
 
 const STATUS_OPTIONS = [
-  { value: 'backlog', label: 'Backlog' },
-  { value: 'todo', label: 'To Do' },
+  { value: 'backlog',     label: 'Backlog' },
+  { value: 'todo',        label: 'To Do' },
   { value: 'in-progress', label: 'In Progress' },
-  { value: 'done', label: 'Done' },
+  { value: 'done',        label: 'Done' },
 ]
 
 const PRIORITY_OPTIONS = [
-  { value: 'low', label: 'Low' },
+  { value: 'low',    label: 'Low' },
   { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
+  { value: 'high',   label: 'High' },
   { value: 'urgent', label: 'Urgent' },
 ]
 
@@ -108,12 +108,12 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
 
   const overdue = isOverdue(item.dueDate)
   const dueSoon = isDueSoon(item.dueDate)
-  const borderColor = overdue ? 'border-l-4 border-l-red-500' : dueSoon ? 'border-l-4 border-l-amber-400' : ''
+  const borderAccent = overdue ? 'border-l-[#ff2020]' : dueSoon ? 'border-l-[#ffb000]' : 'border-l-[#1e1e3a]'
 
   return (
-    <div className="w-96 flex-shrink-0 border-l border-warm-gray bg-parchment flex flex-col h-full overflow-hidden font-mono">
+    <div className={`w-96 flex-shrink-0 border-l border-[#1e1e3a] bg-[#0d0d0d] flex flex-col h-full overflow-hidden font-mono border-l-4 ${borderAccent}`}>
       {/* Header */}
-      <div className={`flex items-start justify-between px-4 py-3 border-b border-warm-gray ${borderColor}`}>
+      <div className="flex items-start justify-between px-4 py-3 border-b border-[#1e1e3a]">
         <div className="flex-1 min-w-0">
           {titleEditing ? (
             <input
@@ -126,11 +126,11 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
                 if (e.key === 'Enter') { handleUpdate('title', titleValue); setTitleEditing(false) }
                 if (e.key === 'Escape') { setTitleValue(item.title); setTitleEditing(false) }
               }}
-              className="w-full font-mono font-semibold text-base bg-transparent border-b border-charcoal outline-none text-charcoal"
+              className="w-full font-mono font-semibold text-base bg-transparent border-b border-[#00fff7] outline-none text-[#e0e0e0]"
             />
           ) : (
             <h2
-              className="font-semibold text-base text-charcoal cursor-text hover:text-stone-600"
+              className="font-semibold text-base text-[#e0e0e0] cursor-text hover:text-[#00fff7] transition-colors"
               onClick={() => setTitleEditing(true)}
               title="Click to edit"
             >
@@ -144,7 +144,7 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
             {dueSoon && !overdue && <Badge variant="high">due soon</Badge>}
           </div>
         </div>
-        <button onClick={() => setSelectedItemId(null)} className="text-stone-400 hover:text-charcoal ml-2 mt-0.5">
+        <button onClick={() => setSelectedItemId(null)} className="text-[#444466] hover:text-[#e0e0e0] ml-2 mt-0.5">
           <X size={16} />
         </button>
       </div>
@@ -177,15 +177,15 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
 
         {/* Due Date */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-stone-500 uppercase tracking-wide">Due Date</label>
+          <label className="text-xs text-[#444466] uppercase tracking-wide">Due Date</label>
           <input
             type="date"
             value={item.dueDate || ''}
             onChange={e => handleUpdate('dueDate', e.target.value || null)}
-            className="font-mono text-sm border border-warm-gray bg-parchment px-2.5 py-1.5 text-charcoal focus:outline-none focus:border-charcoal"
+            className="font-mono text-sm border border-[#1e1e3a] bg-[#1a1a2e] px-2.5 py-1.5 text-[#e0e0e0] focus:outline-none focus:border-[#00fff7]"
           />
           {item.dueDate && (
-            <span className={`text-xs ${getDueDateColor(item.dueDate)}`}>
+            <span className={`text-xs ${overdue ? 'text-[#ff2020]' : dueSoon ? 'text-[#ffb000]' : 'text-[#444466]'}`}>
               {formatFullDate(item.dueDate)}
             </span>
           )}
@@ -193,31 +193,29 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
 
         {/* Assignee */}
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-stone-500 uppercase tracking-wide">Assignee</label>
+          <label className="text-xs text-[#444466] uppercase tracking-wide">Assignee</label>
           <input
             type="text"
             value={item.assignee || ''}
             onChange={e => handleUpdate('assignee', e.target.value)}
             placeholder="Who owns this?"
-            className="font-mono text-sm border border-warm-gray bg-parchment px-2.5 py-1.5 text-charcoal focus:outline-none focus:border-charcoal"
+            className="font-mono text-sm border border-[#1e1e3a] bg-[#1a1a2e] px-2.5 py-1.5 text-[#e0e0e0] placeholder-[#444466] focus:outline-none focus:border-[#00fff7]"
           />
         </div>
 
         {/* Goal Progress */}
         {item.type === 'goal' && (
           <div className="flex flex-col gap-1">
-            <label className="text-xs text-stone-500 uppercase tracking-wide">Progress — {item.progress}%</label>
+            <label className="text-xs text-[#444466] uppercase tracking-wide">Progress — {item.progress}%</label>
             <input
               type="range"
-              min="0"
-              max="100"
-              step="5"
+              min="0" max="100" step="5"
               value={item.progress}
               onChange={e => handleUpdate('progress', parseInt(e.target.value))}
-              className="w-full accent-stone-600"
+              className="w-full"
             />
-            <div className="h-1.5 bg-warm-gray">
-              <div className="h-full bg-stone-600 transition-all" style={{ width: `${item.progress}%` }} />
+            <div className="h-1 bg-[#1e1e3a]">
+              <div className="h-full bg-[#00fff7] transition-all" style={{ width: `${item.progress}%` }} />
             </div>
           </div>
         )}
@@ -234,25 +232,25 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
         {/* Subtasks */}
         {(item.type === 'task' || item.type === 'goal') && (
           <div className="flex flex-col gap-2">
-            <label className="text-xs text-stone-500 uppercase tracking-wide">Subtasks</label>
+            <label className="text-xs text-[#444466] uppercase tracking-wide">Subtasks</label>
             {item.subtasks.length === 0 && (
-              <p className="text-xs text-stone-400 italic">No subtasks yet. Break it down.</p>
+              <p className="text-xs text-[#444466] italic">No subtasks yet.</p>
             )}
             {item.subtasks.map(sub => (
               <div key={sub.id} className="flex items-center gap-2 group">
                 <button
                   onClick={() => toggleSubtask(item.id, sub.id)}
                   className={`w-4 h-4 border shrink-0 flex items-center justify-center transition-colors
-                    ${sub.done ? 'bg-charcoal border-charcoal' : 'border-warm-gray hover:border-charcoal'}`}
+                    ${sub.done ? 'bg-[#00fff7] border-[#00fff7]' : 'border-[#1e1e3a] hover:border-[#00fff7]'}`}
                 >
-                  {sub.done && <Check size={10} className="text-parchment" />}
+                  {sub.done && <Check size={10} className="text-[#0d0d0d]" />}
                 </button>
-                <span className={`flex-1 text-xs ${sub.done ? 'line-through text-stone-400' : 'text-charcoal'}`}>
+                <span className={`flex-1 text-xs ${sub.done ? 'line-through text-[#444466]' : 'text-[#e0e0e0]'}`}>
                   {sub.title}
                 </span>
                 <button
                   onClick={() => deleteSubtask(item.id, sub.id)}
-                  className="opacity-0 group-hover:opacity-100 text-stone-400 hover:text-red-500"
+                  className="opacity-0 group-hover:opacity-100 text-[#444466] hover:text-[#ff2020]"
                 >
                   <Trash2 size={11} />
                 </button>
@@ -263,9 +261,9 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
                 value={newSubtask}
                 onChange={e => setNewSubtask(e.target.value)}
                 placeholder="Add a subtask…"
-                className="flex-1 font-mono text-xs border border-warm-gray bg-parchment px-2 py-1 text-charcoal focus:outline-none focus:border-charcoal"
+                className="flex-1 font-mono text-xs border border-[#1e1e3a] bg-[#1a1a2e] px-2 py-1 text-[#e0e0e0] placeholder-[#444466] focus:outline-none focus:border-[#00fff7]"
               />
-              <button type="submit" className="text-stone-400 hover:text-charcoal border border-warm-gray px-2 hover:border-charcoal">
+              <button type="submit" className="text-[#444466] hover:text-[#00fff7] border border-[#1e1e3a] px-2 hover:border-[#00fff7]">
                 <Plus size={12} />
               </button>
             </form>
@@ -273,32 +271,27 @@ Be specific and direct. This person has ADHD and benefits from concrete, step-le
         )}
 
         {/* AI Assist */}
-        <div className="border border-warm-gray p-3 bg-stone-50">
+        <div className="border border-[#1e1e3a] bg-[#1a1a2e] p-3">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-stone-500">AI Assist</span>
-            <Button
-              size="xs"
-              variant="default"
-              onClick={handleAiAssist}
-              disabled={aiLoading}
-            >
+            <span className="text-xs font-semibold uppercase tracking-wide text-[#444466]">AI Assist</span>
+            <Button size="xs" variant="default" onClick={handleAiAssist} disabled={aiLoading}>
               <Sparkles size={11} />
               {aiLoading ? 'Thinking…' : 'Analyze'}
             </Button>
           </div>
           {aiOutput ? (
             <div className="max-h-64 overflow-y-auto">
-              <MarkdownRenderer content={aiOutput} className="text-xs" />
+              <MarkdownRenderer content={aiOutput} className="text-xs text-[#e0e0e0]" />
             </div>
           ) : (
-            <p className="text-xs text-stone-400 italic">
-              {getApiKey() ? 'Click Analyze to get AI suggestions for this item.' : 'Add your API key in Settings to use AI features.'}
+            <p className="text-xs text-[#444466] italic">
+              {getApiKey() ? 'Click Analyze to get AI suggestions.' : 'Add your API key in Settings.'}
             </p>
           )}
         </div>
 
         {/* Delete */}
-        <div className="pt-2 border-t border-warm-gray">
+        <div className="pt-2 border-t border-[#1e1e3a]">
           <Button variant="danger" size="sm" onClick={handleDelete}>
             <Trash2 size={12} />
             Delete Item

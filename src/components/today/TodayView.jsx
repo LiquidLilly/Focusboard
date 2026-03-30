@@ -76,56 +76,56 @@ Example style: "Your most important move today is finishing the board slides —
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-6 font-mono">
+    <div className="flex-1 overflow-y-auto p-6 font-mono bg-[#0d0d0d]">
       <div className="max-w-2xl mx-auto">
         {/* Date header */}
         <div className="mb-6">
-          <div className="text-xs text-stone-400 uppercase tracking-wider">{format(new Date(), 'EEEE, MMMM d')}</div>
-          <h1 className="text-2xl font-semibold text-charcoal mt-0.5">Today</h1>
+          <div className="text-xs text-[#444466] uppercase tracking-widest">{format(new Date(), 'EEEE, MMMM d')}</div>
+          <h1 className="text-xl font-bold text-[#00fff7] mt-0.5 uppercase tracking-widest">Today</h1>
         </div>
 
         {/* Focus prompt */}
         {(focusPrompt || promptLoading) && (
-          <div className="border-l-4 border-l-amber-400 bg-amber-50 border border-amber-200 px-4 py-3 mb-6">
+          <div className="border-l-4 border-l-[#ffb000] bg-[#ffb00010] border border-[#ffb00030] px-4 py-3 mb-6">
             {promptLoading ? (
-              <span className="text-sm text-amber-700 italic">Getting your focus directive…</span>
+              <span className="text-sm text-[#ffb000] italic">Getting your focus directive…</span>
             ) : (
-              <p className="text-sm text-amber-900 font-medium leading-relaxed">"{focusPrompt}"</p>
+              <p className="text-sm text-[#ffb000cc] font-medium leading-relaxed">"{focusPrompt}"</p>
             )}
           </div>
         )}
 
         {!settings.apiKey && (
-          <div className="border border-warm-gray bg-stone-50 px-4 py-3 mb-6">
-            <p className="text-xs text-stone-500">Add your Claude API key in Settings to get a personalized daily focus directive.</p>
+          <div className="border border-[#1e1e3a] bg-[#1a1a2e] px-4 py-3 mb-6">
+            <p className="text-xs text-[#444466]">Add your Claude API key in Settings to get a personalized daily focus directive.</p>
           </div>
         )}
 
         {/* Item list */}
         {sorted.length === 0 ? (
           <div className="text-center py-12">
-            <div className="text-3xl mb-3">✓</div>
-            <p className="text-stone-500 text-sm">Nothing due today. Clear schedule.</p>
+            <div className="text-3xl mb-3 opacity-30">✓</div>
+            <p className="text-[#444466] text-sm">Nothing due today. Clear schedule.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-2">
             {displayed.map(item => {
               const overdue = isOverdue(item.dueDate)
               const dueSoon = isDueSoon(item.dueDate)
-              const borderColor = overdue ? 'border-l-4 border-l-red-500' : dueSoon ? 'border-l-4 border-l-amber-400' : 'border-l-4 border-l-transparent'
+              const borderL = overdue ? 'border-l-[#ff2020]' : dueSoon ? 'border-l-[#ffb000]' : 'border-l-[#1e1e3a]'
 
               return (
                 <div
                   key={item.id}
-                  className={`bg-parchment border border-warm-gray shadow-[2px_2px_0px_#c8c4bb] flex items-start gap-3 p-3 ${borderColor}`}
+                  className={`bg-[#0d0d0d] border border-[#1e1e3a] border-l-4 flex items-start gap-3 p-3 ${borderL}`}
                 >
                   {/* Checkbox */}
                   <button
                     onClick={() => handleToggleDone(item)}
                     className={`mt-0.5 w-5 h-5 border shrink-0 flex items-center justify-center transition-colors
-                      ${item.status === 'done' ? 'bg-charcoal border-charcoal' : 'border-warm-gray hover:border-charcoal'}`}
+                      ${item.status === 'done' ? 'bg-[#00fff7] border-[#00fff7]' : 'border-[#1e1e3a] hover:border-[#00fff7]'}`}
                   >
-                    {item.status === 'done' && <Check size={12} className="text-parchment" />}
+                    {item.status === 'done' && <Check size={12} className="text-[#0d0d0d]" />}
                   </button>
 
                   {/* Content */}
@@ -133,20 +133,20 @@ Example style: "Your most important move today is finishing the board slides —
                     className="flex-1 min-w-0 cursor-pointer"
                     onClick={() => setSelectedItemId(item.id)}
                   >
-                    <div className={`text-sm font-medium text-charcoal ${item.status === 'done' ? 'line-through text-stone-400' : ''}`}>
+                    <div className={`text-sm font-medium ${item.status === 'done' ? 'line-through text-[#444466]' : 'text-[#e0e0e0]'}`}>
                       {item.title}
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-1 items-center">
-                      <span className="text-xs text-stone-400">{item.projectName}</span>
+                      <span className="text-xs text-[#444466]">{item.projectName}</span>
                       <Badge variant={item.type}>{item.type}</Badge>
                       <Badge variant={item.priority}>{item.priority}</Badge>
                       {item.dueDate && (
-                        <span className={`text-xs flex items-center gap-0.5 ${getDueDateColor(item.dueDate)}`}>
+                        <span className={`text-xs flex items-center gap-0.5 ${overdue ? 'text-[#ff2020]' : dueSoon ? 'text-[#ffb000]' : 'text-[#444466]'}`}>
                           <Calendar size={10} />
                           {overdue ? `Overdue (${formatDueDate(item.dueDate)})` : formatDueDate(item.dueDate)}
                         </span>
                       )}
-                      {item.pinnedToday && <span className="text-xs text-stone-400 flex items-center gap-0.5"><Pin size={10} /> pinned</span>}
+                      {item.pinnedToday && <span className="text-xs text-[#444466] flex items-center gap-0.5"><Pin size={10} /> pinned</span>}
                     </div>
                   </div>
                 </div>
@@ -157,7 +157,7 @@ Example style: "Your most important move today is finishing the board slides —
             {sorted.length > 5 && (
               <button
                 onClick={() => setShowAll(!showAll)}
-                className="flex items-center gap-1.5 text-xs font-mono text-stone-400 hover:text-charcoal py-2 px-1"
+                className="flex items-center gap-1.5 text-xs font-mono text-[#444466] hover:text-[#e0e0e0] py-2 px-1"
               >
                 {showAll ? <><ChevronUp size={12} /> Show less</> : <><ChevronDown size={12} /> Show {hidden} more</>}
               </button>

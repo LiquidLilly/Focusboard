@@ -16,27 +16,27 @@ html, body, #root {
 
 body {
   font-family: 'IBM Plex Mono', 'Courier Prime', 'Courier New', monospace;
-  background-color: #faf9f6;
-  color: #2c2a26;
+  background-color: #0d0d0d;
+  color: #e0e0e0;
   -webkit-font-smoothing: antialiased;
 }
 
-/* Retro scrollbars */
+/* Cyber scrollbars */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #faf9f6;
+  background: #0d0d0d;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c8c4bb;
+  background: #1e1e3a;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a09b93;
+  background: #00fff740;
 }
 
 /* Remove default button/input styles */
@@ -48,21 +48,28 @@ input, textarea, select {
   font-family: inherit;
 }
 
-/* Focus ring */
+/* Focus ring — cyan glow */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #2c2a26;
+  outline: 1px solid #00fff7;
   outline-offset: 1px;
 }
 
 /* Date input styling */
 input[type="date"] {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 /* Range input */
 input[type="range"] {
   cursor: pointer;
+  accent-color: #00fff7;
+}
+
+/* Selection */
+::selection {
+  background: #00fff730;
+  color: #00fff7;
 }

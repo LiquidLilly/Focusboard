@@ -3,12 +3,12 @@ import useStore from '../../store/useStore'
 import { Button } from '../ui/Button'
 import {
   LayoutGrid, Sun, Calendar, FileText, Zap, Settings,
-  Plus, ChevronDown, ChevronRight, Trash2, Edit3, Check, X
+  Plus, ChevronDown, ChevronRight, Trash2, Edit3, Check, X, Monitor
 } from 'lucide-react'
 
 const PROJECT_COLORS = [
-  '#7b97b0', '#8aab8a', '#c49a4a', '#c4897a',
-  '#9b8fb0', '#7aab9b', '#c4a47a', '#9ba77b',
+  '#00fff7', '#ff00ff', '#ffb000', '#ff2020',
+  '#7b97b0', '#8aab8a', '#c49a4a', '#9b8fb0',
 ]
 
 export function Sidebar() {
@@ -27,11 +27,12 @@ export function Sidebar() {
   const [editingName, setEditingName] = useState('')
 
   const navItems = [
-    { id: 'board', label: 'Board', icon: LayoutGrid },
-    { id: 'today', label: 'Today', icon: Sun },
-    { id: 'timeline', label: 'Timeline', icon: Calendar },
-    { id: 'meetings', label: 'Meeting Notes', icon: FileText },
-    { id: 'braindump', label: 'Brain Dump', icon: Zap },
+    { id: 'braindump', label: 'Brain Dump',    icon: Zap },
+    { id: 'overview',  label: 'Ops Center',    icon: Monitor },
+    { id: 'board',     label: 'Board',          icon: LayoutGrid },
+    { id: 'today',     label: 'Today',          icon: Sun },
+    { id: 'timeline',  label: 'Timeline',       icon: Calendar },
+    { id: 'meetings',  label: 'Meeting Notes',  icon: FileText },
   ]
 
   const visibleNavItems = settings.focusMode
@@ -44,7 +45,7 @@ export function Sidebar() {
     setNewProjectName('')
     setNewProjectColor(PROJECT_COLORS[0])
     setAddingProject(false)
-    setActiveView('board')
+    setActiveView('overview')
   }
 
   function handleEditProject(e, project) {
@@ -66,11 +67,11 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-charcoal text-parchment flex flex-col h-full overflow-hidden">
+    <aside className="w-56 flex-shrink-0 bg-[#0d0d0d] border-r border-[#1e1e3a] text-[#e0e0e0] flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className="px-4 py-3 border-b border-stone-700">
-        <div className="font-mono font-bold text-lg tracking-tight">FocusBoard</div>
-        <div className="font-mono text-xs text-stone-400">personal planner</div>
+      <div className="px-4 py-3 border-b border-[#1e1e3a]">
+        <div className="font-mono font-bold text-base tracking-widest text-[#00fff7] uppercase">FocusBoard</div>
+        <div className="font-mono text-xs text-[#444466]">NEXUS v2</div>
       </div>
 
       {/* Nav */}
@@ -81,11 +82,11 @@ export function Sidebar() {
             onClick={() => setActiveView(id)}
             className={`flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-mono w-full text-left transition-colors
               ${activeView === id
-                ? 'bg-stone-700 text-parchment'
-                : 'text-stone-400 hover:text-parchment hover:bg-stone-800'
+                ? 'bg-[#1a1a2e] text-[#00fff7] border-l-2 border-l-[#00fff7]'
+                : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
               }`}
           >
-            <Icon size={14} />
+            <Icon size={13} />
             {label}
           </button>
         ))}
@@ -93,17 +94,17 @@ export function Sidebar() {
 
       {/* Projects section */}
       {!settings.focusMode && (
-        <div className="flex-1 overflow-y-auto px-2 pb-2">
+        <div className="flex-1 overflow-y-auto px-2 pb-2 border-t border-[#1e1e3a] pt-2">
           <div className="flex items-center justify-between px-2 py-1.5">
             <button
-              className="flex items-center gap-1 text-xs font-mono text-stone-400 hover:text-parchment uppercase tracking-wider"
+              className="flex items-center gap-1 text-xs font-mono text-[#444466] hover:text-[#e0e0e0] uppercase tracking-wider"
               onClick={() => setExpandedProjects(!expandedProjects)}
             >
               {expandedProjects ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               Projects
             </button>
             <button
-              className="text-stone-400 hover:text-parchment"
+              className="text-[#444466] hover:text-[#00fff7]"
               onClick={() => setAddingProject(true)}
               title="New project"
             >
@@ -122,10 +123,13 @@ export function Sidebar() {
                   <div
                     key={project.id}
                     className={`group relative flex items-center gap-2 px-2.5 py-1.5 cursor-pointer font-mono text-sm transition-colors
-                      ${isActive ? 'bg-stone-700 text-parchment' : 'text-stone-400 hover:text-parchment hover:bg-stone-800'}`}
+                      ${isActive
+                        ? 'bg-[#1a1a2e] text-[#e0e0e0] border-l-2 border-l-[#00fff7]'
+                        : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
+                      }`}
                     onClick={() => { setActiveProjectId(project.id); setActiveView('board') }}
                   >
-                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: project.color }} />
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: project.color }} />
 
                     {editingProjectId === project.id ? (
                       <input
@@ -138,7 +142,7 @@ export function Sidebar() {
                         }}
                         onBlur={() => handleSaveEdit(project.id)}
                         onClick={e => e.stopPropagation()}
-                        className="flex-1 bg-stone-600 text-parchment text-xs px-1 py-0.5 outline-none"
+                        className="flex-1 bg-[#1a1a2e] border border-[#00fff730] text-[#e0e0e0] text-xs px-1 py-0.5 outline-none"
                       />
                     ) : (
                       <span className="flex-1 truncate text-xs">{project.name}</span>
@@ -146,10 +150,10 @@ export function Sidebar() {
 
                     {editingProjectId !== project.id && (
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                        <button onClick={e => handleEditProject(e, project)} className="text-stone-400 hover:text-parchment">
+                        <button onClick={e => handleEditProject(e, project)} className="text-[#444466] hover:text-[#00fff7]">
                           <Edit3 size={10} />
                         </button>
-                        <button onClick={e => handleDeleteProject(e, project.id)} className="text-stone-400 hover:text-red-400">
+                        <button onClick={e => handleDeleteProject(e, project.id)} className="text-[#444466] hover:text-[#ff2020]">
                           <Trash2 size={10} />
                         </button>
                       </div>
@@ -157,9 +161,9 @@ export function Sidebar() {
 
                     {/* Progress bar */}
                     {stats.total > 0 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-stone-700">
+                      <div className="absolute bottom-0 left-0 right-0 h-px bg-[#1e1e3a]">
                         <div
-                          className="h-full bg-stone-400 transition-all"
+                          className="h-full transition-all"
                           style={{ width: `${pct}%`, backgroundColor: project.color }}
                         />
                       </div>
@@ -169,7 +173,7 @@ export function Sidebar() {
               })}
 
               {addingProject && (
-                <div className="px-2.5 py-2 bg-stone-800 flex flex-col gap-2">
+                <div className="px-2.5 py-2 bg-[#1a1a2e] border border-[#1e1e3a] flex flex-col gap-2">
                   <input
                     autoFocus
                     value={newProjectName}
@@ -179,23 +183,26 @@ export function Sidebar() {
                       if (e.key === 'Escape') setAddingProject(false)
                     }}
                     placeholder="Project name…"
-                    className="bg-stone-700 text-parchment text-xs font-mono px-2 py-1 outline-none border border-stone-600 placeholder-stone-500"
+                    className="bg-[#0d0d0d] border border-[#1e1e3a] text-[#e0e0e0] text-xs font-mono px-2 py-1 outline-none focus:border-[#00fff7] placeholder-[#444466]"
                   />
                   <div className="flex gap-1.5 flex-wrap">
                     {PROJECT_COLORS.map(color => (
                       <button
                         key={color}
                         onClick={() => setNewProjectColor(color)}
-                        className={`w-4 h-4 rounded-full border-2 ${newProjectColor === color ? 'border-parchment' : 'border-transparent'}`}
+                        className={`w-4 h-4 rounded-full border-2 ${newProjectColor === color ? 'border-[#e0e0e0]' : 'border-transparent'}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
                   </div>
                   <div className="flex gap-1">
-                    <button onClick={handleAddProject} className="text-xs font-mono text-parchment bg-stone-600 hover:bg-stone-500 px-2 py-0.5 flex items-center gap-1">
+                    <button
+                      onClick={handleAddProject}
+                      className="text-xs font-mono text-[#0d0d0d] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
+                    >
                       <Check size={10} /> Add
                     </button>
-                    <button onClick={() => setAddingProject(false)} className="text-xs font-mono text-stone-400 hover:text-parchment">
+                    <button onClick={() => setAddingProject(false)} className="text-xs font-mono text-[#444466] hover:text-[#e0e0e0]">
                       <X size={10} />
                     </button>
                   </div>
@@ -207,13 +214,16 @@ export function Sidebar() {
       )}
 
       {/* Settings link */}
-      <div className="px-2 py-2 border-t border-stone-700">
+      <div className="px-2 py-2 border-t border-[#1e1e3a]">
         <button
           onClick={() => setActiveView('settings')}
           className={`flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-mono w-full text-left transition-colors
-            ${activeView === 'settings' ? 'bg-stone-700 text-parchment' : 'text-stone-400 hover:text-parchment hover:bg-stone-800'}`}
+            ${activeView === 'settings'
+              ? 'bg-[#1a1a2e] text-[#00fff7] border-l-2 border-l-[#00fff7]'
+              : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
+            }`}
         >
-          <Settings size={14} />
+          <Settings size={13} />
           Settings
         </button>
       </div>

@@ -6,129 +6,32 @@ import {
   loadMeetings, saveMeetings,
   loadSettings, saveSettings,
 } from '../utils/storage'
-import { format } from 'date-fns'
 
 // ─── Seed Data ───────────────────────────────────────────────────────────────
+// Creates the 5 default work buckets (as projects) on first run.
+// Each project gets standard Kanban buckets inside it.
 function createSeedData() {
-  const today = new Date()
-  const tomorrow = new Date(today); tomorrow.setDate(today.getDate() + 1)
-  const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1)
-  const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7)
+  const NAMED_BUCKETS = [
+    'Contamination Control Group',
+    'Cleaning Process Group',
+    'MES & Automation',
+    'Process Development',
+    'Data Trending & APR',
+  ]
+  const COLORS = ['#00fff7', '#ff00ff', '#ffb000', '#7b97b0', '#8aab8a']
 
-  const todoId = generateId()
-  const inProgId = generateId()
-  const doneId = generateId()
-
-  return [{
+  return NAMED_BUCKETS.map((name, i) => ({
     id: generateId(),
-    name: 'Getting Started',
-    color: '#7b97b0',
+    name,
+    color: COLORS[i] || '#7b97b0',
     createdAt: new Date().toISOString(),
     buckets: [
-      {
-        id: todoId,
-        name: 'To Do',
-        order: 0,
-        items: [
-          {
-            id: generateId(),
-            type: 'task',
-            title: 'Explore the Board view',
-            description: 'Drag items between buckets, click to open details, and try the AI Assist button.',
-            status: 'todo',
-            priority: 'medium',
-            dueDate: format(tomorrow, 'yyyy-MM-dd'),
-            assignee: '',
-            subtasks: [
-              { id: generateId(), title: 'Open an item by clicking it', done: false },
-              { id: generateId(), title: 'Drag an item to another bucket', done: false },
-            ],
-            progress: 0,
-            pinnedToday: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: generateId(),
-            type: 'goal',
-            title: 'Set up my first real project',
-            description: 'Create a project for something you\'re actually working on.',
-            status: 'todo',
-            priority: 'high',
-            dueDate: format(nextWeek, 'yyyy-MM-dd'),
-            assignee: '',
-            subtasks: [],
-            progress: 0,
-            pinnedToday: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
-      },
-      {
-        id: inProgId,
-        name: 'In Progress',
-        order: 1,
-        items: [
-          {
-            id: generateId(),
-            type: 'task',
-            title: 'Add your Claude API key in Settings',
-            description: 'Go to Settings (bottom of sidebar) and paste your API key to unlock AI features.',
-            status: 'in-progress',
-            priority: 'urgent',
-            dueDate: format(today, 'yyyy-MM-dd'),
-            assignee: '',
-            subtasks: [
-              { id: generateId(), title: 'Open Settings', done: false },
-              { id: generateId(), title: 'Paste API key and test connection', done: false },
-            ],
-            progress: 0,
-            pinnedToday: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-          {
-            id: generateId(),
-            type: 'todo',
-            title: 'Try the Meeting Notes processor',
-            description: 'Paste raw meeting notes and let Claude extract action items.',
-            status: 'in-progress',
-            priority: 'low',
-            dueDate: format(yesterday, 'yyyy-MM-dd'),
-            assignee: '',
-            subtasks: [],
-            progress: 0,
-            pinnedToday: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
-      },
-      {
-        id: doneId,
-        name: 'Done',
-        order: 2,
-        items: [
-          {
-            id: generateId(),
-            type: 'todo',
-            title: 'Launch FocusBoard',
-            description: 'You did it.',
-            status: 'done',
-            priority: 'medium',
-            dueDate: format(today, 'yyyy-MM-dd'),
-            assignee: '',
-            subtasks: [],
-            progress: 100,
-            pinnedToday: false,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          },
-        ],
-      },
+      { id: generateId(), name: 'Backlog',     order: 0, items: [] },
+      { id: generateId(), name: 'Next Up',     order: 1, items: [] },
+      { id: generateId(), name: 'In Progress', order: 2, items: [] },
+      { id: generateId(), name: 'Done',        order: 3, items: [] },
     ],
-  }]
+  }))
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -138,7 +41,7 @@ const useStore = create((set, get) => ({
   brainDump: loadBrainDump(),
   meetings: loadMeetings(),
   settings: loadSettings(),
-  activeView: 'board',
+  activeView: 'braindump',
   activeProjectId: null,
   selectedItemId: null,
   toast: null,
@@ -475,10 +378,14 @@ const useStore = create((set, get) => ({
   },
 
   // ── Brain Dump ───────────────────────────────────────────────────────────────
-  addBrainDumpItem(text) {
+  addBrainDumpItem(text, priority = 'normal', bucketId = null) {
     const newItem = {
       id: generateId(),
       text,
+      priority,       // 'critical' | 'high' | 'normal' | 'low'
+      bucketId,       // nullable FK — links to a project (repurposed as project link)
+      promoted: false,
+      archived: false,
       createdAt: new Date().toISOString(),
     }
     const brainDump = [newItem, ...get().brainDump]
@@ -505,6 +412,31 @@ const useStore = create((set, get) => ({
     const brainDump = get().brainDump.map(i => i.id === id ? { ...i, ...updates } : i)
     set({ brainDump })
     saveBrainDump(brainDump)
+  },
+
+  // Promote: convert to task in target project, dim in place
+  promoteBrainDumpItem(id, projectId, bucketTargetId) {
+    const item = get().brainDump.find(i => i.id === id)
+    if (!item) return
+    const project = get().projects.find(p => p.id === projectId)
+    if (!project) return
+    const bucket = project.buckets.find(b => b.id === bucketTargetId) || project.buckets[0]
+    if (!bucket) return
+    const itemId = get().addItem(project.id, bucket.id, {
+      title: item.text,
+      type: 'task',
+      priority: item.priority === 'critical' ? 'urgent'
+              : item.priority === 'high' ? 'high'
+              : item.priority === 'low' ? 'low'
+              : 'medium',
+    })
+    get().updateBrainDumpItem(id, { promoted: true, bucketId: project.id })
+    get().showToast(`Promoted to "${project.name} / ${bucket.name}"`)
+    return itemId
+  },
+
+  archiveBrainDumpItem(id) {
+    get().updateBrainDumpItem(id, { archived: true })
   },
 
   // ── Meetings ─────────────────────────────────────────────────────────────────

@@ -10,15 +10,18 @@ export default {
         mono: ['"IBM Plex Mono"', '"Courier Prime"', 'Courier New', 'monospace'],
       },
       colors: {
-        // Retro palette
-        parchment: '#faf9f6',
-        'warm-gray': '#c8c4bb',
-        charcoal: '#2c2a26',
-        'muted-blue': '#7b97b0',
-        'sage-green': '#8aab8a',
-        'warm-amber': '#c49a4a',
-        'blush-pink': '#c4897a',
-        'dusty-lavender': '#9b8fb0',
+        // Dark Cyber palette
+        cyber: {
+          bg:        '#0d0d0d',
+          cyan:      '#00fff7',
+          magenta:   '#ff00ff',
+          amber:     '#ffb000',
+          red:       '#ff2020',
+          dim:       '#1a1a2e',
+          text:      '#e0e0e0',
+          'text-dim':'#444466',
+          border:    '#1e1e3a',
+        },
       },
     },
   },
