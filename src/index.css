@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'IBM Plex Mono', 'Courier Prime', 'Courier New', monospace;
+  background-color: #faf9f6;
+  color: #2c2a26;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Retro scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: #faf9f6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c8c4bb;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a09b93;
+}
+
+/* Remove default button/input styles */
+button {
+  font-family: inherit;
+}
+
+input, textarea, select {
+  font-family: inherit;
+}
+
+/* Focus ring */
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #2c2a26;
+  outline-offset: 1px;
+}
+
+/* Date input styling */
+input[type="date"] {
+  color-scheme: light;
+}
+
+/* Range input */
+input[type="range"] {
+  cursor: pointer;
+}
