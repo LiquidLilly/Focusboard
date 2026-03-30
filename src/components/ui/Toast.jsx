@@ -7,8 +7,8 @@ export function Toast() {
 
   return (
     <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
-                    bg-[#1a1a2e] text-[#e0e0e0] px-4 py-2.5 font-mono text-sm
-                    border border-[#00fff730] shadow-[0_0_16px_#00fff720]">
+                    bg-[#111118] text-[#ffffff] px-4 py-2.5 font-mono text-sm font-bold
+                    border border-[#00fff7] shadow-[0_0_16px_#00fff730]">
       <span>{toast.message}</span>
       {toast.undoFn && (
         <button
@@ -18,7 +18,7 @@ export function Toast() {
           Undo
         </button>
       )}
-      <button onClick={dismissToast} className="text-[#444466] hover:text-[#e0e0e0] ml-1">✕</button>
+      <button onClick={dismissToast} className="text-[#cccccc] hover:text-[#ffffff] ml-1">✕</button>
     </div>
   )
 }

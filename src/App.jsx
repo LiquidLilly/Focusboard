@@ -89,7 +89,7 @@ function App() {
   const showDetailPanel = selectedItemId && ['board', 'today', 'timeline'].includes(activeView)
 
   return (
-    <div className="h-screen flex overflow-hidden bg-[#0d0d0d]">
+    <div className="h-screen flex overflow-hidden bg-[#080808]">
       {/* Sidebar */}
       <Sidebar />
 
@@ -116,9 +116,9 @@ function App() {
         </div>
 
         {/* Breadcrumb status bar */}
-        <div className="shrink-0 border-t border-[#1e1e3a] bg-[#0d0d0d] px-4 py-1 flex items-center gap-4">
-          <span className="text-xs text-[#444466] tracking-widest font-mono">{breadcrumb}</span>
-          <span className="text-xs text-[#1e1e3a] ml-auto">
+        <div className="shrink-0 border-t border-[#00fff7] bg-[#111118] px-4 py-1 flex items-center gap-4">
+          <span className="text-xs text-[#ffffff] tracking-widest font-mono font-bold">{breadcrumb}</span>
+          <span className="text-xs text-[#cccccc] ml-auto">
             {activeView === 'braindump' && 'Tab/B=overview · N=capture'}
             {activeView === 'overview'  && 'Enter=drill in · Esc=back · Tab/B=brain dump'}
             {activeView === 'board'     && 'Esc=back · Ctrl+F=search'}

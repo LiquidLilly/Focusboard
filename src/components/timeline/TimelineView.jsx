@@ -39,46 +39,46 @@ export function TimelineView() {
   }
 
   const itemColorMap = {
-    task: 'bg-[#00fff710] text-[#00fff7] border-[#00fff730]',
-    todo: 'bg-[#ff00ff10] text-[#ff00ff] border-[#ff00ff30]',
-    goal: 'bg-[#ffb00010] text-[#ffb000] border-[#ffb00030]',
+    task: 'bg-[#00fff715] text-[#00fff7] border-[#00fff7]',
+    todo: 'bg-[#ff00ff15] text-[#ff00ff] border-[#ff00ff]',
+    goal: 'bg-[#ffd00015] text-[#ffd000] border-[#ffd000]',
   }
 
   return (
-    <div className="flex-1 overflow-auto p-4 font-mono bg-[#0d0d0d]">
+    <div className="flex-1 overflow-auto p-4 font-mono bg-[#080808]">
       <div className="max-w-5xl mx-auto">
         {/* Controls */}
         <div className="flex items-center justify-between mb-4">
           <h1 className="text-base font-bold text-[#00fff7] uppercase tracking-widest">Timeline</h1>
           <div className="flex items-center gap-3">
-            <div className="flex border border-[#1e1e3a]">
+            <div className="flex border border-[#444466]">
               <button
                 onClick={() => setViewMode('week')}
-                className={`px-3 py-1 text-xs font-mono ${viewMode === 'week' ? 'bg-[#00fff7] text-[#0d0d0d] font-bold' : 'bg-[#0d0d0d] text-[#444466] hover:text-[#e0e0e0]'}`}
+                className={`px-3 py-1 text-xs font-mono ${viewMode === 'week' ? 'bg-[#00fff7] text-[#080808] font-bold' : 'bg-[#080808] text-[#cccccc] hover:text-[#ffffff]'}`}
               >
                 Week
               </button>
               <button
                 onClick={() => setViewMode('month')}
-                className={`px-3 py-1 text-xs font-mono border-l border-[#1e1e3a] ${viewMode === 'month' ? 'bg-[#00fff7] text-[#0d0d0d] font-bold' : 'bg-[#0d0d0d] text-[#444466] hover:text-[#e0e0e0]'}`}
+                className={`px-3 py-1 text-xs font-mono border-l border-[#444466] ${viewMode === 'month' ? 'bg-[#00fff7] text-[#080808] font-bold' : 'bg-[#080808] text-[#cccccc] hover:text-[#ffffff]'}`}
               >
                 Month
               </button>
             </div>
             <div className="flex items-center gap-1">
-              <button onClick={() => navigate(-1)} className="p-1 hover:bg-[#1a1a2e] border border-[#1e1e3a] text-[#444466] hover:text-[#e0e0e0]">
+              <button onClick={() => navigate(-1)} className="p-1 hover:bg-[#111118] border border-[#444466] text-[#cccccc] hover:text-[#ffffff]">
                 <ChevronLeft size={14} />
               </button>
-              <span className="text-sm px-2 text-[#e0e0e0]">
+              <span className="text-sm px-2 text-[#ffffff] font-bold">
                 {viewMode === 'week'
                   ? `${format(days[0], 'MMM d')} – ${format(days[days.length - 1], 'MMM d, yyyy')}`
                   : format(currentDate, 'MMMM yyyy')}
               </span>
-              <button onClick={() => navigate(1)} className="p-1 hover:bg-[#1a1a2e] border border-[#1e1e3a] text-[#444466] hover:text-[#e0e0e0]">
+              <button onClick={() => navigate(1)} className="p-1 hover:bg-[#111118] border border-[#444466] text-[#cccccc] hover:text-[#ffffff]">
                 <ChevronRight size={14} />
               </button>
             </div>
-            <button onClick={() => setCurrentDate(new Date())} className="text-xs font-mono border border-[#1e1e3a] px-2 py-1 text-[#444466] hover:text-[#00fff7] hover:border-[#00fff730]">
+            <button onClick={() => setCurrentDate(new Date())} className="text-xs font-mono border border-[#444466] px-2 py-1 text-[#cccccc] hover:text-[#00fff7] hover:border-[#00fff7]">
               Today
             </button>
           </div>
@@ -86,19 +86,19 @@ export function TimelineView() {
 
         {/* Overdue column */}
         {overdueItems.length > 0 && (
-          <div className="mb-4 border border-[#ff202030] bg-[#ff202010]">
-            <div className="px-3 py-1.5 bg-[#ff202015] border-b border-[#ff202030]">
-              <span className="text-xs font-semibold text-[#ff2020] uppercase tracking-wide">⚠ Overdue — {overdueItems.length}</span>
+          <div className="mb-4 border border-[#ff3333] bg-[#ff333315]">
+            <div className="px-3 py-1.5 bg-[#ff333320] border-b border-[#ff3333]">
+              <span className="text-xs font-bold text-[#ff3333] uppercase tracking-wide">⚠ Overdue — {overdueItems.length}</span>
             </div>
             <div className="p-2 flex flex-wrap gap-1.5">
               {overdueItems.map(item => (
                 <button
                   key={item.id}
                   onClick={() => setSelectedItemId(item.id)}
-                  className="text-xs font-mono border border-[#ff202030] bg-[#0d0d0d] text-[#ff2020] px-2 py-1 hover:bg-[#ff202015] text-left"
+                  className="text-xs font-mono border border-[#ff3333] bg-[#111118] text-[#ff3333] px-2 py-1 hover:bg-[#ff333320] text-left font-bold"
                 >
-                  <div className="font-medium truncate max-w-48">{item.title}</div>
-                  <div className="text-[#444466]">{item.projectName}</div>
+                  <div className="font-bold truncate max-w-48">{item.title}</div>
+                  <div className="text-[#cccccc]">{item.projectName}</div>
                 </button>
               ))}
             </div>
@@ -114,19 +114,19 @@ export function TimelineView() {
             return (
               <div
                 key={day.toISOString()}
-                className={`min-h-24 border ${today ? 'border-[#00fff730]' : 'border-[#1e1e3a]'} bg-[#0d0d0d]`}
+                className={`min-h-24 border ${today ? 'border-[#00fff7]' : 'border-[#444466]'} bg-[#111118]`}
               >
                 <div className={`px-2 py-1 text-xs font-mono border-b
-                  ${today ? 'bg-[#00fff715] border-[#00fff730] text-[#00fff7]' : 'bg-[#1a1a2e] text-[#444466] border-[#1e1e3a]'}`}>
+                  ${today ? 'bg-[#00fff715] border-[#00fff7] text-[#00fff7]' : 'bg-[#080808] text-[#cccccc] border-[#444466]'}`}>
                   <div>{format(day, 'EEE')}</div>
-                  <div className={`font-semibold ${today ? 'text-[#00fff7]' : 'text-[#e0e0e0]'}`}>{format(day, 'd')}</div>
+                  <div className={`font-bold ${today ? 'text-[#00fff7]' : 'text-[#ffffff]'}`}>{format(day, 'd')}</div>
                 </div>
                 <div className="p-1 flex flex-col gap-1">
                   {dayItems.map(item => (
                     <button
                       key={item.id}
                       onClick={() => setSelectedItemId(item.id)}
-                      className={`w-full text-left text-xs font-mono px-1.5 py-1 border truncate hover:opacity-80 ${itemColorMap[item.type] || 'bg-[#1a1a2e] text-[#e0e0e0] border-[#1e1e3a]'}`}
+                      className={`w-full text-left text-xs font-mono font-bold px-1.5 py-1 border truncate hover:opacity-80 ${itemColorMap[item.type] || 'bg-[#111118] text-[#ffffff] border-[#444466]'}`}
                       style={{ borderLeftColor: item.projectColor, borderLeftWidth: '2px' }}
                     >
                       {item.title}

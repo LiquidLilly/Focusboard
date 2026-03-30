@@ -67,11 +67,11 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-56 flex-shrink-0 bg-[#0d0d0d] border-r border-[#1e1e3a] text-[#e0e0e0] flex flex-col h-full overflow-hidden">
+    <aside className="w-56 flex-shrink-0 bg-[#080808] border-r border-[#00fff7] text-[#ffffff] flex flex-col h-full overflow-hidden">
       {/* Logo */}
-      <div className="px-4 py-3 border-b border-[#1e1e3a]">
+      <div className="px-4 py-3 border-b border-[#00fff7]">
         <div className="font-mono font-bold text-base tracking-widest text-[#00fff7] uppercase">FocusBoard</div>
-        <div className="font-mono text-xs text-[#444466]">NEXUS v2</div>
+        <div className="font-mono text-xs text-[#cccccc]">NEXUS v2</div>
       </div>
 
       {/* Nav */}
@@ -82,8 +82,8 @@ export function Sidebar() {
             onClick={() => setActiveView(id)}
             className={`flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-mono w-full text-left transition-colors
               ${activeView === id
-                ? 'bg-[#1a1a2e] text-[#00fff7] border-l-2 border-l-[#00fff7]'
-                : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
+                ? 'bg-[#111118] text-[#00fff7] border-l-2 border-l-[#00fff7]'
+                : 'text-[#cccccc] hover:text-[#ffffff] hover:bg-[#111118]'
               }`}
           >
             <Icon size={13} />
@@ -94,17 +94,17 @@ export function Sidebar() {
 
       {/* Projects section */}
       {!settings.focusMode && (
-        <div className="flex-1 overflow-y-auto px-2 pb-2 border-t border-[#1e1e3a] pt-2">
+        <div className="flex-1 overflow-y-auto px-2 pb-2 border-t border-[#444466] pt-2">
           <div className="flex items-center justify-between px-2 py-1.5">
             <button
-              className="flex items-center gap-1 text-xs font-mono text-[#444466] hover:text-[#e0e0e0] uppercase tracking-wider"
+              className="flex items-center gap-1 text-xs font-mono text-[#cccccc] hover:text-[#ffffff] uppercase tracking-wider"
               onClick={() => setExpandedProjects(!expandedProjects)}
             >
               {expandedProjects ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               Projects
             </button>
             <button
-              className="text-[#444466] hover:text-[#00fff7]"
+              className="text-[#cccccc] hover:text-[#00fff7]"
               onClick={() => setAddingProject(true)}
               title="New project"
             >
@@ -124,8 +124,8 @@ export function Sidebar() {
                     key={project.id}
                     className={`group relative flex items-center gap-2 px-2.5 py-1.5 cursor-pointer font-mono text-sm transition-colors
                       ${isActive
-                        ? 'bg-[#1a1a2e] text-[#e0e0e0] border-l-2 border-l-[#00fff7]'
-                        : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
+                        ? 'bg-[#111118] text-[#ffffff] border-l-2 border-l-[#00fff7]'
+                        : 'text-[#cccccc] hover:text-[#ffffff] hover:bg-[#111118]'
                       }`}
                     onClick={() => { setActiveProjectId(project.id); setActiveView('board') }}
                   >
@@ -142,18 +142,18 @@ export function Sidebar() {
                         }}
                         onBlur={() => handleSaveEdit(project.id)}
                         onClick={e => e.stopPropagation()}
-                        className="flex-1 bg-[#1a1a2e] border border-[#00fff730] text-[#e0e0e0] text-xs px-1 py-0.5 outline-none"
+                        className="flex-1 bg-[#111118] border border-[#00fff7] text-[#ffffff] text-xs px-1 py-0.5 outline-none"
                       />
                     ) : (
-                      <span className="flex-1 truncate text-xs">{project.name}</span>
+                      <span className="flex-1 truncate text-xs font-bold">{project.name}</span>
                     )}
 
                     {editingProjectId !== project.id && (
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                        <button onClick={e => handleEditProject(e, project)} className="text-[#444466] hover:text-[#00fff7]">
+                        <button onClick={e => handleEditProject(e, project)} className="text-[#cccccc] hover:text-[#00fff7]">
                           <Edit3 size={10} />
                         </button>
-                        <button onClick={e => handleDeleteProject(e, project.id)} className="text-[#444466] hover:text-[#ff2020]">
+                        <button onClick={e => handleDeleteProject(e, project.id)} className="text-[#cccccc] hover:text-[#ff3333]">
                           <Trash2 size={10} />
                         </button>
                       </div>
@@ -161,7 +161,7 @@ export function Sidebar() {
 
                     {/* Progress bar */}
                     {stats.total > 0 && (
-                      <div className="absolute bottom-0 left-0 right-0 h-px bg-[#1e1e3a]">
+                      <div className="absolute bottom-0 left-0 right-0 h-px bg-[#444466]">
                         <div
                           className="h-full transition-all"
                           style={{ width: `${pct}%`, backgroundColor: project.color }}
@@ -173,7 +173,7 @@ export function Sidebar() {
               })}
 
               {addingProject && (
-                <div className="px-2.5 py-2 bg-[#1a1a2e] border border-[#1e1e3a] flex flex-col gap-2">
+                <div className="px-2.5 py-2 bg-[#111118] border border-[#444466] flex flex-col gap-2">
                   <input
                     autoFocus
                     value={newProjectName}
@@ -183,14 +183,14 @@ export function Sidebar() {
                       if (e.key === 'Escape') setAddingProject(false)
                     }}
                     placeholder="Project name…"
-                    className="bg-[#0d0d0d] border border-[#1e1e3a] text-[#e0e0e0] text-xs font-mono px-2 py-1 outline-none focus:border-[#00fff7] placeholder-[#444466]"
+                    className="bg-[#080808] border border-[#444466] text-[#ffffff] font-bold text-xs font-mono px-2 py-1 outline-none focus:border-[#00fff7] placeholder-[#666688]"
                   />
                   <div className="flex gap-1.5 flex-wrap">
                     {PROJECT_COLORS.map(color => (
                       <button
                         key={color}
                         onClick={() => setNewProjectColor(color)}
-                        className={`w-4 h-4 rounded-full border-2 ${newProjectColor === color ? 'border-[#e0e0e0]' : 'border-transparent'}`}
+                        className={`w-4 h-4 rounded-full border-2 ${newProjectColor === color ? 'border-[#ffffff]' : 'border-transparent'}`}
                         style={{ backgroundColor: color }}
                       />
                     ))}
@@ -198,11 +198,11 @@ export function Sidebar() {
                   <div className="flex gap-1">
                     <button
                       onClick={handleAddProject}
-                      className="text-xs font-mono text-[#0d0d0d] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
+                      className="text-xs font-mono text-[#080808] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
                     >
                       <Check size={10} /> Add
                     </button>
-                    <button onClick={() => setAddingProject(false)} className="text-xs font-mono text-[#444466] hover:text-[#e0e0e0]">
+                    <button onClick={() => setAddingProject(false)} className="text-xs font-mono text-[#cccccc] hover:text-[#ffffff]">
                       <X size={10} />
                     </button>
                   </div>
@@ -214,13 +214,13 @@ export function Sidebar() {
       )}
 
       {/* Settings link */}
-      <div className="px-2 py-2 border-t border-[#1e1e3a]">
+      <div className="px-2 py-2 border-t border-[#444466]">
         <button
           onClick={() => setActiveView('settings')}
           className={`flex items-center gap-2.5 px-2.5 py-1.5 text-sm font-mono w-full text-left transition-colors
             ${activeView === 'settings'
-              ? 'bg-[#1a1a2e] text-[#00fff7] border-l-2 border-l-[#00fff7]'
-              : 'text-[#444466] hover:text-[#e0e0e0] hover:bg-[#1a1a2e]'
+              ? 'bg-[#111118] text-[#00fff7] border-l-2 border-l-[#00fff7]'
+              : 'text-[#cccccc] hover:text-[#ffffff] hover:bg-[#111118]'
             }`}
         >
           <Settings size={13} />

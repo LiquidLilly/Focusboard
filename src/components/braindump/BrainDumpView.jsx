@@ -6,10 +6,10 @@ import { format } from 'date-fns'
 
 // Priority config — colors match the cyber palette
 const PRIORITIES = [
-  { value: 'critical', label: 'CRIT',   border: 'border-l-[#ff2020]', text: 'text-[#ff2020]',  bg: 'bg-[#ff202015]' },
-  { value: 'high',     label: 'HIGH',   border: 'border-l-[#ff00ff]', text: 'text-[#ff00ff]',  bg: 'bg-[#ff00ff10]' },
+  { value: 'critical', label: 'CRIT',   border: 'border-l-[#ff3333]', text: 'text-[#ff3333]',  bg: 'bg-[#ff333315]' },
+  { value: 'high',     label: 'HIGH',   border: 'border-l-[#ffd000]', text: 'text-[#ffd000]',  bg: 'bg-[#ffd00010]' },
   { value: 'normal',   label: 'NRML',   border: 'border-l-[#00fff7]', text: 'text-[#00fff7]',  bg: ''               },
-  { value: 'low',      label: 'LOW',    border: 'border-l-[#444466]', text: 'text-[#444466]',  bg: ''               },
+  { value: 'low',      label: 'LOW',    border: 'border-l-[#444466]', text: 'text-[#666688]',  bg: ''               },
 ]
 
 function getPriority(value) {
@@ -155,15 +155,15 @@ Title: [cleaned title]`
   const visibleItems  = showArchived ? brainDump : [...activeItems, ...promotedItems]
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col h-full font-mono bg-[#0d0d0d]">
+    <div className="flex-1 overflow-hidden flex flex-col h-full font-mono bg-[#080808]">
       {/* ── Capture bar ── pinned at top */}
-      <div className="shrink-0 border-b border-[#1e1e3a] bg-[#0d0d0d] px-6 py-4">
+      <div className="shrink-0 border-b border-[#444466] bg-[#080808] px-6 py-4">
         <div className="max-w-3xl mx-auto">
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
             <Zap size={16} className="text-[#00fff7]" />
             <span className="text-sm font-bold text-[#00fff7] tracking-widest uppercase">Brain Dump</span>
-            <span className="text-xs text-[#444466] ml-2">Press N to focus · P promote · X archive · ↑↓ navigate</span>
+            <span className="text-xs text-[#cccccc] ml-2">Press N to focus · P promote · X archive · ↑↓ navigate</span>
           </div>
 
           {/* Input row */}
@@ -178,7 +178,7 @@ Title: [cleaned title]`
                   className={`text-xs px-2 py-2 border transition-colors
                     ${inputPriority === p.value
                       ? `border-current ${p.text} bg-current/10`
-                      : 'border-[#1e1e3a] text-[#444466] hover:border-[#444466]'
+                      : 'border-[#444466] text-[#cccccc] hover:border-[#cccccc]'
                     }`}
                 >
                   {p.label}
@@ -192,13 +192,13 @@ Title: [cleaned title]`
               onChange={e => setInputValue(e.target.value)}
               placeholder="What's on your mind? Enter to capture…"
               autoFocus
-              className="flex-1 bg-[#1a1a2e] border border-[#1e1e3a] text-[#e0e0e0] placeholder-[#444466]
+              className="flex-1 bg-[#111118] border border-[#444466] text-[#ffffff] font-bold placeholder-[#666688]
                          px-3 py-2 text-sm focus:outline-none focus:border-[#00fff7]"
             />
             <button
               type="submit"
               disabled={!inputValue.trim()}
-              className="bg-[#00fff7] text-[#0d0d0d] font-bold text-sm px-4 py-2
+              className="bg-[#00fff7] text-[#080808] font-bold text-sm px-4 py-2
                          hover:bg-[#00fff7cc] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               CAPTURE
@@ -211,7 +211,7 @@ Title: [cleaned title]`
       <div className="flex-1 overflow-y-auto px-6 py-4">
         <div className="max-w-3xl mx-auto flex flex-col gap-2">
           {activeItems.length === 0 && promotedItems.length === 0 && !showArchived && (
-            <div className="text-center py-16 text-[#444466]">
+            <div className="text-center py-16 text-[#cccccc]">
               <div className="text-4xl mb-3 opacity-40">◈</div>
               <p className="text-sm">Buffer clear. Capture anything that's taking up space in your head.</p>
             </div>
@@ -228,10 +228,10 @@ Title: [cleaned title]`
               <div
                 key={item.id}
                 onClick={() => setSelectedIdx(isSelected ? null : idx)}
-                className={`border-l-4 border border-[#1e1e3a] bg-[#0d0d0d] cursor-pointer
+                className={`border-l-4 border border-[#444466] bg-[#111118] cursor-pointer
                   transition-all select-none
                   ${pri.border}
-                  ${isSelected ? 'border-[#00fff730] shadow-[0_0_8px_#00fff720]' : 'hover:border-[#1e1e3a]'}
+                  ${isSelected ? 'border-[#00fff7] shadow-[0_0_8px_#00fff730]' : 'hover:border-[#00fff7]'}
                   ${isDimmed ? 'opacity-30' : ''}
                 `}
               >
@@ -241,16 +241,16 @@ Title: [cleaned title]`
 
                   {/* Body */}
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm leading-snug ${item.promoted ? 'line-through text-[#444466]' : 'text-[#e0e0e0]'}`}>
+                    <p className={`text-sm font-bold leading-snug ${item.promoted ? 'line-through text-[#666688]' : 'text-[#ffffff]'}`}>
                       {item.text}
                     </p>
                     <div className="flex items-center gap-3 mt-1.5">
-                      <span className="text-xs text-[#444466]">{formatTs(item.createdAt)}</span>
+                      <span className="text-xs text-[#cccccc]">{formatTs(item.createdAt)}</span>
                       {linkedProject && (
-                        <span className="text-xs text-[#00fff780]">→ {linkedProject.name}</span>
+                        <span className="text-xs text-[#00fff7] font-bold">→ {linkedProject.name}</span>
                       )}
-                      {item.promoted && <span className="text-xs text-[#444466]">PROMOTED</span>}
-                      {item.archived && <span className="text-xs text-[#444466]">ARCHIVED</span>}
+                      {item.promoted && <span className="text-xs text-[#666688] font-bold">PROMOTED</span>}
+                      {item.archived && <span className="text-xs text-[#666688] font-bold">ARCHIVED</span>}
                     </div>
                   </div>
 
@@ -267,7 +267,7 @@ Title: [cleaned title]`
                       </button>
                       <button
                         onClick={() => { archiveBrainDumpItem(item.id); setSelectedIdx(null) }}
-                        className="text-xs text-[#444466] border border-[#1e1e3a] px-2 py-1 hover:text-[#e0e0e0]
+                        className="text-xs text-[#cccccc] border border-[#444466] px-2 py-1 hover:text-[#ffffff]
                                    flex items-center gap-1"
                         title="Archive (X)"
                       >
@@ -288,27 +288,27 @@ Title: [cleaned title]`
 
                 {/* AI sort result */}
                 {result && (
-                  <div className="border-t border-[#1e1e3a] bg-[#1a1a2e] px-4 py-2" onClick={e => e.stopPropagation()}>
+                  <div className="border-t border-[#444466] bg-[#111118] px-4 py-2" onClick={e => e.stopPropagation()}>
                     {result.error ? (
-                      <p className="text-xs text-[#ff2020]">{result.error}</p>
+                      <p className="text-xs text-[#ff3333] font-bold">{result.error}</p>
                     ) : (
                       <div className="flex items-center justify-between gap-2">
-                        <div className="text-xs text-[#444466]">
-                          <span className="text-[#e0e0e0]">{result.title || item.text}</span>
-                          {' '}→{' '}<span className="text-[#00fff7]">{result.project}</span>
-                          {' / '}<span className="text-[#00fff780]">{result.bucket}</span>
-                          {' · '}<span className="text-[#ff00ff80]">{result.type}</span>
+                        <div className="text-xs text-[#cccccc]">
+                          <span className="text-[#ffffff] font-bold">{result.title || item.text}</span>
+                          {' '}→{' '}<span className="text-[#00fff7] font-bold">{result.project}</span>
+                          {' / '}<span className="text-[#00fff7]">{result.bucket}</span>
+                          {' · '}<span className="text-[#ff00ff]">{result.type}</span>
                         </div>
                         <div className="flex gap-1.5">
                           <button
                             onClick={() => handleConfirmSort(item)}
-                            className="text-xs text-[#0d0d0d] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
+                            className="text-xs text-[#080808] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
                           >
                             <Check size={10} /> MOVE
                           </button>
                           <button
                             onClick={() => setSortResult(r => { const c = {...r}; delete c[item.id]; return c })}
-                            className="text-xs text-[#444466] hover:text-[#e0e0e0] px-1"
+                            className="text-xs text-[#cccccc] hover:text-[#ffffff] px-1"
                           >
                             ✕
                           </button>
@@ -320,12 +320,12 @@ Title: [cleaned title]`
 
                 {/* Bucket picker for promote */}
                 {promotingId === item.id && (
-                  <div className="border-t border-[#1e1e3a] bg-[#1a1a2e] px-4 py-3" onClick={e => e.stopPropagation()}>
-                    <p className="text-xs text-[#00fff7] mb-2 uppercase tracking-wider">Promote to project:</p>
+                  <div className="border-t border-[#444466] bg-[#111118] px-4 py-3" onClick={e => e.stopPropagation()}>
+                    <p className="text-xs text-[#00fff7] font-bold mb-2 uppercase tracking-wider">Promote to project:</p>
                     <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
                       {projects.map(proj => (
                         <div key={proj.id} className="flex flex-col gap-0.5">
-                          <p className="text-xs text-[#444466] uppercase tracking-wide px-1">{proj.name}</p>
+                          <p className="text-xs text-[#cccccc] font-bold uppercase tracking-wide px-1">{proj.name}</p>
                           {proj.buckets.map(bkt => (
                             <button
                               key={bkt.id}
@@ -334,8 +334,8 @@ Title: [cleaned title]`
                                 setPromotingId(null)
                                 setSelectedIdx(null)
                               }}
-                              className="text-xs text-left text-[#e0e0e0] px-3 py-1.5 hover:bg-[#00fff710]
-                                         hover:text-[#00fff7] border border-transparent hover:border-[#00fff730]"
+                              className="text-xs text-left text-[#ffffff] px-3 py-1.5 hover:bg-[#00fff715]
+                                         hover:text-[#00fff7] border border-transparent hover:border-[#00fff7]"
                             >
                               {bkt.name}
                             </button>
@@ -345,7 +345,7 @@ Title: [cleaned title]`
                     </div>
                     <button
                       onClick={() => setPromotingId(null)}
-                      className="text-xs text-[#444466] hover:text-[#e0e0e0] mt-2"
+                      className="text-xs text-[#cccccc] hover:text-[#ffffff] mt-2"
                     >
                       Cancel
                     </button>
@@ -359,7 +359,7 @@ Title: [cleaned title]`
           {archivedItems.length > 0 && (
             <button
               onClick={() => setShowArchived(v => !v)}
-              className="text-xs text-[#444466] hover:text-[#e0e0e0] flex items-center gap-1.5 py-2 mt-2"
+              className="text-xs text-[#cccccc] hover:text-[#ffffff] flex items-center gap-1.5 py-2 mt-2"
             >
               <ChevronDown size={12} className={showArchived ? 'rotate-180' : ''} />
               {showArchived ? 'Hide' : 'Show'} {archivedItems.length} archived

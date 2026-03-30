@@ -16,8 +16,8 @@ html, body, #root {
 
 body {
   font-family: 'IBM Plex Mono', 'Courier Prime', 'Courier New', monospace;
-  background-color: #0d0d0d;
-  color: #e0e0e0;
+  background-color: #080808;
+  color: #ffffff;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -28,11 +28,11 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0d0d0d;
+  background: #080808;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e1e3a;
+  background: #444466;
 }
 
 ::-webkit-scrollbar-thumb:hover {

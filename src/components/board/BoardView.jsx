@@ -27,7 +27,7 @@ export function BoardView() {
 
   if (!project) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[#444466] font-mono text-sm">
+      <div className="flex-1 flex items-center justify-center text-[#cccccc] font-mono text-sm">
         No project selected. Choose one in the sidebar.
       </div>
     )
@@ -87,7 +87,7 @@ export function BoardView() {
   const activeItem = activeDragId ? getItem(activeDragId) : null
 
   return (
-    <div className="flex-1 overflow-x-auto h-full bg-[#0d0d0d]">
+    <div className="flex-1 overflow-x-auto h-full bg-[#080808]">
       <div className="p-4 flex items-start gap-4 min-w-max h-full">
         <DndContext
           sensors={sensors}
@@ -102,7 +102,7 @@ export function BoardView() {
 
           <DragOverlay>
             {activeItem && (
-              <div className="opacity-90 rotate-1 shadow-[0_0_20px_#00fff720]">
+              <div className="opacity-90 rotate-1 shadow-[0_0_20px_#00fff730]">
                 <ItemCard item={activeItem} projectId={project.id} bucketId={activeItem.bucketId} />
               </div>
             )}
@@ -112,7 +112,7 @@ export function BoardView() {
         {/* Add bucket */}
         <div className="w-64 shrink-0">
           {addingBucket ? (
-            <div className="border border-[#1e1e3a] bg-[#1a1a2e] p-2 flex flex-col gap-2">
+            <div className="border border-[#444466] bg-[#111118] p-2 flex flex-col gap-2">
               <input
                 autoFocus
                 value={newBucketName}
@@ -122,7 +122,7 @@ export function BoardView() {
                   if (e.key === 'Escape') { setAddingBucket(false); setNewBucketName('') }
                 }}
                 placeholder="Bucket name…"
-                className="font-mono text-sm bg-transparent border-b border-[#1e1e3a] focus:border-[#00fff7] outline-none text-[#e0e0e0] placeholder-[#444466] py-0.5"
+                className="font-mono font-bold text-sm bg-transparent border-b border-[#444466] focus:border-[#00fff7] outline-none text-[#ffffff] placeholder-[#666688] py-0.5"
               />
               <div className="flex gap-1">
                 <Button size="xs" variant="primary" onClick={handleAddBucket}>Add</Button>
@@ -132,8 +132,8 @@ export function BoardView() {
           ) : (
             <button
               onClick={() => setAddingBucket(true)}
-              className="flex items-center gap-1.5 text-sm font-mono text-[#444466] hover:text-[#00fff7]
-                         border border-dashed border-[#1e1e3a] hover:border-[#00fff730] px-3 py-2 w-full transition-colors"
+              className="flex items-center gap-1.5 text-sm font-mono text-[#cccccc] hover:text-[#00fff7]
+                         border border-dashed border-[#444466] hover:border-[#00fff7] px-3 py-2 w-full transition-colors"
             >
               <Plus size={14} /> Add bucket
             </button>

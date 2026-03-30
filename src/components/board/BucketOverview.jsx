@@ -24,8 +24,8 @@ function deriveStatus(project) {
 function statusConfig(status) {
   switch (status) {
     case 'active':  return { label: 'ACTIVE',   border: 'border-l-[#00fff7]', text: 'text-[#00fff7]',  dot: 'bg-[#00fff7]'  }
-    case 'blocked': return { label: 'BLOCKED',  border: 'border-l-[#ffb000]', text: 'text-[#ffb000]',  dot: 'bg-[#ffb000]'  }
-    default:        return { label: 'QUIET',    border: 'border-l-[#2a4a2a]', text: 'text-[#2a6a2a]',  dot: 'bg-[#2a6a2a]'  }
+    case 'blocked': return { label: 'BLOCKED',  border: 'border-l-[#ffd000]', text: 'text-[#ffd000]',  dot: 'bg-[#ffd000]'  }
+    default:        return { label: 'QUIET',    border: 'border-l-[#444466]', text: 'text-[#666688]',  dot: 'bg-[#666688]'  }
   }
 }
 
@@ -71,21 +71,21 @@ export function BucketOverview({ onDrillIn }) {
 
   if (projects.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center text-[#444466] font-mono text-sm">
+      <div className="flex-1 flex items-center justify-center text-[#cccccc] font-mono text-sm">
         No projects yet. Add one in the sidebar.
       </div>
     )
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#0d0d0d] px-6 py-5">
+    <div className="flex-1 overflow-y-auto bg-[#080808] px-6 py-5">
       {/* Header */}
       <div className="max-w-5xl mx-auto">
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-xs text-[#444466] uppercase tracking-widest">NEXUS</span>
-          <span className="text-[#1e1e3a]">/</span>
-          <span className="text-sm font-bold text-[#e0e0e0] uppercase tracking-widest">Ops Center</span>
-          <span className="text-xs text-[#444466] ml-2">Tab or B to return to Brain Dump · Enter to drill in</span>
+          <span className="text-xs text-[#cccccc] uppercase tracking-widest">NEXUS</span>
+          <span className="text-[#cccccc]">/</span>
+          <span className="text-sm font-bold text-[#ffffff] uppercase tracking-widest">Ops Center</span>
+          <span className="text-xs text-[#cccccc] ml-2">Tab or B to return to Brain Dump · Enter to drill in</span>
         </div>
 
         {/* 2-col grid */}
@@ -102,44 +102,44 @@ export function BucketOverview({ onDrillIn }) {
               <button
                 key={project.id}
                 onClick={() => onDrillIn(project.id)}
-                className={`text-left border-l-4 border border-[#1e1e3a] bg-[#0d0d0d]
-                  hover:border-[#1e1e3a] hover:shadow-[0_0_12px_#00fff710]
+                className={`text-left border-l-4 border border-[#444466] bg-[#111118]
+                  hover:border-[#00fff7] hover:shadow-[0_0_12px_#00fff720]
                   transition-all p-0 ${sc.border}
-                  focus:outline-none focus:border-[#00fff730]`}
+                  focus:outline-none focus:border-[#00fff7]`}
               >
                 {/* Card header */}
-                <div className="flex items-start justify-between px-4 pt-3 pb-2 border-b border-[#1e1e3a]">
+                <div className="flex items-start justify-between px-4 pt-3 pb-2 border-b border-[#444466]">
                   <div>
-                    <div className="font-bold text-sm text-[#e0e0e0] tracking-wide uppercase">{project.name}</div>
+                    <div className="font-bold text-sm text-[#ffffff] tracking-wide uppercase">{project.name}</div>
                     <div className="flex items-center gap-3 mt-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
                         <span className={`text-xs font-bold ${sc.text}`}>{sc.label}</span>
                       </div>
-                      {lu && <span className="text-xs text-[#444466]">updated {lu}</span>}
+                      {lu && <span className="text-xs text-[#cccccc]">updated {lu}</span>}
                     </div>
                   </div>
-                  <span className="text-xs text-[#444466] border border-[#1e1e3a] px-2 py-0.5 shrink-0 ml-2">
+                  <span className="text-xs text-[#cccccc] border border-[#444466] px-2 py-0.5 shrink-0 ml-2">
                     {total} items
                   </span>
                 </div>
 
                 {/* NEXT STEPS */}
-                <div className="px-4 py-2 border-b border-[#1e1e3a]">
-                  <div className="text-xs text-[#444466] uppercase tracking-wider mb-1.5">Next Steps</div>
+                <div className="px-4 py-2 border-b border-[#444466]">
+                  <div className="text-xs text-[#cccccc] uppercase tracking-wider mb-1.5 font-bold">Next Steps</div>
                   {next.length === 0 ? (
-                    <p className="text-xs text-[#444466] italic">— no open items</p>
+                    <p className="text-xs text-[#cccccc] italic">— no open items</p>
                   ) : (
                     <div className="flex flex-col gap-1">
                       {next.map(item => (
                         <div key={item.id} className="flex items-start gap-2">
                           <span className="text-[#00fff7] text-xs shrink-0 mt-0.5">›</span>
-                          <span className="text-xs text-[#e0e0e0] leading-snug truncate">{item.title}</span>
+                          <span className="text-xs text-[#ffffff] font-bold leading-snug truncate">{item.title}</span>
                           {item.priority === 'urgent' && (
-                            <span className="text-xs text-[#ff2020] shrink-0">!</span>
+                            <span className="text-xs text-[#ff3333] shrink-0 font-bold">!</span>
                           )}
                           {item.priority === 'high' && (
-                            <span className="text-xs text-[#ff00ff] shrink-0">↑</span>
+                            <span className="text-xs text-[#ffd000] shrink-0 font-bold">↑</span>
                           )}
                         </div>
                       ))}
@@ -149,18 +149,18 @@ export function BucketOverview({ onDrillIn }) {
 
                 {/* RECENT ASKS */}
                 <div className="px-4 py-2">
-                  <div className="text-xs text-[#444466] uppercase tracking-wider mb-1.5">Recent Asks</div>
+                  <div className="text-xs text-[#cccccc] uppercase tracking-wider mb-1.5 font-bold">Recent Asks</div>
                   {recent.length === 0 ? (
-                    <p className="text-xs text-[#444466] italic">— nothing recent</p>
+                    <p className="text-xs text-[#cccccc] italic">— nothing recent</p>
                   ) : (
                     <div className="flex flex-col gap-1">
                       {recent.map(item => {
                         const days = differenceInDays(new Date(), new Date(item.createdAt))
                         return (
                           <div key={item.id} className="flex items-start gap-2">
-                            <span className="text-[#444466] text-xs shrink-0 mt-0.5">·</span>
-                            <span className="text-xs text-[#e0e0e080] leading-snug truncate flex-1">{item.title}</span>
-                            <span className="text-xs text-[#444466] shrink-0">
+                            <span className="text-[#cccccc] text-xs shrink-0 mt-0.5">·</span>
+                            <span className="text-xs text-[#cccccc] leading-snug truncate flex-1">{item.title}</span>
+                            <span className="text-xs text-[#cccccc] shrink-0">
                               {days === 0 ? 'today' : days === 1 ? '1d' : `${days}d`}
                             </span>
                           </div>

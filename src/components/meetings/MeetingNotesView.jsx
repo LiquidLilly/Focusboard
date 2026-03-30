@@ -152,33 +152,33 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
   const actionItems = output ? extractActionItems(output) : []
 
   return (
-    <div className="flex-1 flex overflow-hidden font-mono bg-[#0d0d0d]">
+    <div className="flex-1 flex overflow-hidden font-mono bg-[#080808]">
       {/* Sidebar */}
-      <div className="w-56 flex-shrink-0 border-r border-[#1e1e3a] flex flex-col bg-[#0d0d0d]">
-        <div className="px-3 py-2.5 border-b border-[#1e1e3a] flex items-center justify-between">
-          <span className="text-xs font-semibold uppercase tracking-wide text-[#444466]">Meetings</span>
-          <button onClick={startNew} className="text-[#444466] hover:text-[#00fff7]" title="New meeting">
+      <div className="w-56 flex-shrink-0 border-r border-[#444466] flex flex-col bg-[#080808]">
+        <div className="px-3 py-2.5 border-b border-[#444466] flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wide text-[#cccccc]">Meetings</span>
+          <button onClick={startNew} className="text-[#cccccc] hover:text-[#00fff7]" title="New meeting">
             <Plus size={14} />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto">
           {meetings.length === 0 && (
-            <div className="text-xs text-[#444466] italic px-3 py-4">No meetings yet.</div>
+            <div className="text-xs text-[#cccccc] italic px-3 py-4">No meetings yet.</div>
           )}
           {meetings.map(m => (
             <div
               key={m.id}
-              className={`group flex items-center justify-between px-3 py-2 cursor-pointer border-b border-[#1e1e3a] hover:bg-[#1a1a2e]
-                ${selectedMeetingId === m.id ? 'bg-[#1a1a2e] border-l-2 border-l-[#00fff7]' : ''}`}
+              className={`group flex items-center justify-between px-3 py-2 cursor-pointer border-b border-[#444466] hover:bg-[#111118]
+                ${selectedMeetingId === m.id ? 'bg-[#111118] border-l-2 border-l-[#00fff7]' : ''}`}
               onClick={() => loadMeeting(m)}
             >
               <div className="min-w-0">
-                <div className="text-xs font-medium truncate text-[#e0e0e0]">{m.title}</div>
-                <div className="text-xs text-[#444466]">{format(parseISO(m.date), 'MMM d, yyyy')}</div>
+                <div className="text-xs font-bold truncate text-[#ffffff]">{m.title}</div>
+                <div className="text-xs text-[#cccccc]">{format(parseISO(m.date), 'MMM d, yyyy')}</div>
               </div>
               <button
                 onClick={e => { e.stopPropagation(); deleteMeeting(m.id); if (selectedMeetingId === m.id) { setSelectedMeetingId(null); setIsNew(false) } }}
-                className="opacity-0 group-hover:opacity-100 text-[#444466] hover:text-[#ff2020] ml-1 shrink-0"
+                className="opacity-0 group-hover:opacity-100 text-[#cccccc] hover:text-[#ff3333] ml-1 shrink-0"
               >
                 <Trash2 size={11} />
               </button>
@@ -191,11 +191,11 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
       {!isNew && !selectedMeetingId ? (
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <FileText size={32} className="text-[#1e1e3a] mx-auto mb-3" />
-            <p className="text-sm text-[#444466]">Select a meeting or start a new one.</p>
+            <FileText size={32} className="text-[#444466] mx-auto mb-3" />
+            <p className="text-sm text-[#cccccc]">Select a meeting or start a new one.</p>
             <button
               onClick={startNew}
-              className="mt-3 text-sm font-mono border border-[#1e1e3a] px-3 py-1.5 text-[#444466] hover:text-[#00fff7] hover:border-[#00fff730]"
+              className="mt-3 text-sm font-mono border border-[#444466] px-3 py-1.5 text-[#cccccc] hover:text-[#00fff7] hover:border-[#00fff7]"
             >
               + New meeting
             </button>
@@ -204,31 +204,31 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
       ) : (
         <div className="flex-1 flex overflow-hidden">
           {/* Input panel */}
-          <div className="w-1/2 flex flex-col border-r border-[#1e1e3a]">
-            <div className="p-4 border-b border-[#1e1e3a] flex flex-col gap-2">
+          <div className="w-1/2 flex flex-col border-r border-[#444466]">
+            <div className="p-4 border-b border-[#444466] flex flex-col gap-2">
               <input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
                 placeholder="Meeting title…"
-                className="font-mono text-base font-semibold bg-transparent outline-none text-[#e0e0e0] placeholder-[#444466] border-b border-[#1e1e3a] focus:border-[#00fff7] pb-1"
+                className="font-mono font-bold text-base bg-transparent outline-none text-[#ffffff] placeholder-[#666688] border-b border-[#444466] focus:border-[#00fff7] pb-1"
               />
               <div className="flex gap-3 flex-wrap">
                 <div className="flex items-center gap-1">
-                  <label className="text-xs text-[#444466]">Date:</label>
+                  <label className="text-xs text-[#cccccc] font-bold">Date:</label>
                   <input
                     type="date"
                     value={date}
                     onChange={e => setDate(e.target.value)}
-                    className="font-mono text-xs bg-transparent outline-none text-[#e0e0e0] border-b border-[#1e1e3a]"
+                    className="font-mono font-bold text-xs bg-transparent outline-none text-[#ffffff] border-b border-[#444466]"
                   />
                 </div>
                 <div className="flex items-center gap-1 flex-1">
-                  <label className="text-xs text-[#444466]">Attendees:</label>
+                  <label className="text-xs text-[#cccccc] font-bold">Attendees:</label>
                   <input
                     value={attendees}
                     onChange={e => setAttendees(e.target.value)}
                     placeholder="Alice, Bob…"
-                    className="font-mono text-xs bg-transparent outline-none text-[#e0e0e0] placeholder-[#444466] border-b border-[#1e1e3a] flex-1"
+                    className="font-mono font-bold text-xs bg-transparent outline-none text-[#ffffff] placeholder-[#666688] border-b border-[#444466] flex-1"
                   />
                 </div>
               </div>
@@ -238,15 +238,15 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
               value={rawNotes}
               onChange={e => setRawNotes(e.target.value)}
               placeholder="Paste or type your meeting notes here…"
-              className="flex-1 font-mono text-sm bg-[#0d0d0d] px-4 py-3 outline-none text-[#e0e0e0] placeholder-[#444466] resize-none"
+              className="flex-1 font-mono font-bold text-sm bg-[#080808] px-4 py-3 outline-none text-[#ffffff] placeholder-[#666688] resize-none"
             />
 
-            <div className="px-4 py-3 border-t border-[#1e1e3a]">
+            <div className="px-4 py-3 border-t border-[#444466]">
               <Button variant="primary" onClick={processMeeting} disabled={processing || !rawNotes.trim()}>
                 {processing ? '⏳ Processing…' : '✦ Process with Claude'}
               </Button>
               {!getApiKey() && (
-                <span className="text-xs text-[#444466] ml-3">Add API key in Settings first.</span>
+                <span className="text-xs text-[#cccccc] ml-3">Add API key in Settings first.</span>
               )}
             </div>
           </div>
@@ -256,14 +256,14 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
             {output ? (
               <>
                 {actionItems.length > 0 && (
-                  <div className="px-4 py-2 border-b border-[#1e1e3a] bg-[#00fff710]">
-                    <div className="text-xs font-semibold text-[#00fff7] mb-1.5 uppercase tracking-wide">Quick-add to Board:</div>
+                  <div className="px-4 py-2 border-b border-[#444466] bg-[#00fff715]">
+                    <div className="text-xs font-bold text-[#00fff7] mb-1.5 uppercase tracking-wide">Quick-add to Board:</div>
                     <div className="flex flex-col gap-1">
                       {actionItems.slice(0, 4).map((action, i) => (
                         <button
                           key={i}
                           onClick={() => addToBoard(action)}
-                          className="text-xs font-mono text-left text-[#00fff7] border border-[#00fff730] bg-[#0d0d0d] px-2 py-1 hover:bg-[#00fff710] truncate flex items-center gap-1"
+                          className="text-xs font-mono font-bold text-left text-[#00fff7] border border-[#00fff7] bg-[#111118] px-2 py-1 hover:bg-[#00fff715] truncate flex items-center gap-1"
                         >
                           <Plus size={10} />
                           {action.slice(0, 70)}{action.length > 70 ? '…' : ''}
@@ -273,12 +273,12 @@ Things that were unclear or ambiguous that I need to clarify before acting.`
                   </div>
                 )}
                 <div className="flex-1 overflow-y-auto px-4 py-3">
-                  <MarkdownRenderer content={output} className="text-[#e0e0e0]" />
+                  <MarkdownRenderer content={output} className="text-[#ffffff]" />
                 </div>
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center">
-                <p className="text-sm text-[#444466] italic text-center px-8">
+                <p className="text-sm text-[#cccccc] italic text-center px-8">
                   {processing ? 'Claude is reading your notes…' : 'Processed notes will appear here.'}
                 </p>
               </div>

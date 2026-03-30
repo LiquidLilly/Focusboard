@@ -12,13 +12,13 @@ export function MarkdownRenderer({ content, className = '' }) {
     if (line.startsWith('### ')) {
       elements.push(<h3 key={i} className="font-mono font-semibold text-sm text-[#00fff7] mt-3 mb-1">{renderInline(line.slice(4))}</h3>)
     } else if (line.startsWith('## ')) {
-      elements.push(<h2 key={i} className="font-mono font-semibold text-base text-[#00fff7] mt-4 mb-1 border-b border-[#1e1e3a] pb-1">{renderInline(line.slice(3))}</h2>)
+      elements.push(<h2 key={i} className="font-mono font-bold text-base text-[#00fff7] mt-4 mb-1 border-b border-[#444466] pb-1">{renderInline(line.slice(3))}</h2>)
     } else if (line.startsWith('# ')) {
       elements.push(<h1 key={i} className="font-mono font-bold text-lg text-[#00fff7] mt-4 mb-2">{renderInline(line.slice(2))}</h1>)
     } else if (line.match(/^[-*•]\s/)) {
       elements.push(
         <div key={i} className="flex gap-2 text-sm py-0.5">
-          <span className="text-[#444466] mt-0.5 shrink-0">›</span>
+          <span className="text-[#00fff7] mt-0.5 shrink-0">›</span>
           <span>{renderInline(line.slice(2))}</span>
         </div>
       )
@@ -26,7 +26,7 @@ export function MarkdownRenderer({ content, className = '' }) {
       const match = line.match(/^(\d+)\.\s(.*)/)
       elements.push(
         <div key={i} className="flex gap-2 text-sm py-0.5">
-          <span className="text-[#444466] shrink-0 w-4">{match[1]}.</span>
+          <span className="text-[#cccccc] shrink-0 w-4">{match[1]}.</span>
           <span>{renderInline(match[2])}</span>
         </div>
       )
@@ -38,7 +38,7 @@ export function MarkdownRenderer({ content, className = '' }) {
     i++
   }
 
-  return <div className={`font-mono text-[#e0e0e0] ${className}`}>{elements}</div>
+  return <div className={`font-mono text-[#ffffff] ${className}`}>{elements}</div>
 }
 
 function renderInline(text) {
@@ -46,10 +46,10 @@ function renderInline(text) {
   const parts = text.split(/(\*\*[^*]+\*\*|__[^_]+__)/g)
   return parts.map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
-      return <strong key={i} className="font-semibold text-[#e0e0e0]">{part.slice(2, -2)}</strong>
+      return <strong key={i} className="font-bold text-[#ffffff]">{part.slice(2, -2)}</strong>
     }
     if (part.startsWith('__') && part.endsWith('__')) {
-      return <strong key={i} className="font-semibold text-[#e0e0e0]">{part.slice(2, -2)}</strong>
+      return <strong key={i} className="font-bold text-[#ffffff]">{part.slice(2, -2)}</strong>
     }
     return part
   })
