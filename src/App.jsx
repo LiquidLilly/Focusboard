@@ -7,6 +7,7 @@ import TaskBoard from './components/board/TaskBoard'
 import TaskDetailPanel from './components/board/TaskDetailPanel'
 import MeetingNotesPanel from './components/meetings/MeetingNotesPanel'
 import TomorrowPlanner from './components/planner/TomorrowPlanner'
+import MindspaceView from './components/mindspace/MindspaceView'
 
 // Toast component — minimal, inline
 function Toast() {
@@ -49,6 +50,10 @@ function App() {
 
         {activeView === 'planner' && (
           <TomorrowPlanner />
+        )}
+
+        {activeView === 'mindspace' && (
+          <MindspaceView />
         )}
       </div>
 

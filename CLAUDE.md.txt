@@ -175,3 +175,20 @@ npm run dev
 ```
 
 No environment variables. API key supplied by user in Settings UI.
+
+## Mindspace Tab
+
+- Stored in `fb_mindspace_checkins` keyed by `YYYY-MM-DD`
+- Check-in data (mood scales, free text, daily intention) is NEVER sent to the Claude API automatically — only if the user explicitly clicks "Talk it through"
+- The "Ask Claude" system prompt is defined in `src/hooks/useAI.js` as `MINDSPACE_SYSTEM_PROMPT` — do not alter it without being asked
+- If Claude's response in Mindspace mentions anything suggesting crisis or serious distress, always append the 988 line reference regardless of what Claude returns
+- DBT technique cards are static content defined in `src/utils/dbtTechniques.js` — no API calls involved
+- The tab should feel visually calmer than the rest of the app: increase padding to 32px, use softer border colors (`var(--border-subtle)` only, no `--border-default`), and reduce heading weight to 400
+
+## Header Reminders
+
+- Reminder pool lives in `src/utils/reminders.js` as a named export `REMINDERS`
+- Rotation is every 4 minutes (240000ms) via setInterval in the Header component
+- Use a randomized index that tracks shown items to avoid repeats until the full pool cycles
+- Crossfade transition: opacity 0 → 1 over 300ms only — no movement, no slide
+- The reminder element must never cause layout shift — give it a fixed height container

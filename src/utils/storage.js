@@ -5,6 +5,7 @@ const KEYS = {
   MEETINGS:  'fb_meetings',
   SETTINGS:  'fb_settings',
   PLANNER:   'fb_planner',
+  MINDSPACE: 'fb_mindspace_checkins',
 }
 
 export function loadTasks() {
@@ -44,6 +45,15 @@ export function loadPlanner() {
 }
 export function savePlanner(p) {
   localStorage.setItem(KEYS.PLANNER, JSON.stringify(p))
+}
+
+// Mindspace check-ins — keyed by YYYY-MM-DD
+// Each entry: { date, anxiety, focus, selfFeeling, freeText, intention, savedAt }
+export function loadMindspaceCheckins() {
+  try { return JSON.parse(localStorage.getItem(KEYS.MINDSPACE)) || {} } catch { return {} }
+}
+export function saveMindspaceCheckins(data) {
+  localStorage.setItem(KEYS.MINDSPACE, JSON.stringify(data))
 }
 
 export function exportAllData() {
