@@ -100,7 +100,8 @@ export default function TaskBoard() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="flex h-full overflow-x-auto overflow-y-hidden" style={{ gap: 12, padding: '12px 16px' }}>
+      <div className="h-full overflow-x-auto overflow-y-hidden" style={{ display: 'flex', justifyContent: 'center' }}>
+        <div style={{ display: 'inline-flex', gap: 12, padding: '12px 16px', minWidth: 'min-content', alignItems: 'flex-start' }}>
         <SortableContext items={buckets.map(b => b.id)} strategy={horizontalListSortingStrategy}>
           {buckets.map(bucket => (
             <BucketColumn key={bucket.id} bucket={bucket} />
@@ -133,6 +134,7 @@ export default function TaskBoard() {
               <Plus size={14} /> Add Bucket
             </button>
           )}
+        </div>
         </div>
       </div>
 
