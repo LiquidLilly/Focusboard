@@ -1,24 +1,33 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import { GripVertical, Star, Pencil, Trash2, CalendarPlus } from 'lucide-react'
 import useStore from '../../store/useStore'
-import { Badge } from '../ui/Badge'
-import { isOverdue, isDueSoon, formatDueDate } from '../../utils/dates'
-import { GripVertical, Calendar } from 'lucide-react'
+import { formatDueDate, isOverdue, isDueSoon } from '../../utils/dates'
 
-export function ItemCard({ item, projectId, bucketId }) {
-  const { setSelectedItemId, selectedItemId } = useStore()
+const STATUS_COLORS = {
+  backlog:     { bg: 'rgba(72,185,199,0.1)',  text: '#48b9c7' },
+  todo:        { bg: 'rgba(139,148,158,0.15)', text: '#8b949e' },
+  'in-progress':{ bg: 'rgba(157,127,232,0.15)', text: '#9d7fe8' },
+  done:        { bg: 'rgba(76,175,130,0.15)', text: '#4caf82' },
+}
 
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({
-    id: item.id,
-    data: { type: 'item', item, projectId, bucketId },
-  })
+const PRIORITY_COLORS = {
+  low:    '#8b949e',
+  medium: '#48b9c7',
+  high:   '#e9a84c',
+  urgent: '#e05c5c',
+}
+
+const SOURCE_COLORS = {
+  braindump: { bg: 'rgba(72,185,199,0.1)', text: '#48b9c7' },
+  meeting:   { bg: 'rgba(157,127,232,0.12)', text: '#9d7fe8' },
+}
+
+export default function TaskCard({ task, isDragOverlay }) {
+  const { setSelectedTask, selectedTaskId, updateTask, deleteTask, pinTaskToTomorrow, showToast } = useStore()
+  const isSelected = selectedTaskId === task.id
+
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: task.id })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -26,74 +35,140 @@ export function ItemCard({ item, projectId, bucketId }) {
     opacity: isDragging ? 0.3 : 1,
   }
 
-  const overdue  = isOverdue(item.dueDate)
-  const dueSoon  = isDueSoon(item.dueDate)
-  const borderL  = overdue ? 'border-l-[#ff3333]' : dueSoon ? 'border-l-[#ffd000]' : 'border-l-[#444466]'
-  const isSelected = selectedItemId === item.id
-  const doneSubtasks = item.subtasks.filter(s => s.done).length
+  const overdue  = isOverdue(task.dueDate)
+  const dueSoon  = isDueSoon(task.dueDate)
+  const statusC  = STATUS_COLORS[task.status]   || STATUS_COLORS.todo
+  const prioC    = PRIORITY_COLORS[task.priority] || '#8b949e'
+  const srcColor = SOURCE_COLORS[task.sourceType]
+
+  const doneSubs  = task.subtasks?.filter(s => s.done).length || 0
+  const totalSubs = task.subtasks?.length || 0
+
+  function handlePin(e) {
+    e.stopPropagation()
+    const ok = pinTaskToTomorrow(task.id)
+    if (ok) showToast(`"${task.title}" pinned to Tomorrow`)
+  }
+
+  const container = isDragOverlay ? 'div' : 'div'
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
-      className={`bg-[#111118] border border-[#444466] border-l-4 font-mono
-        ${borderL}
-        ${isSelected ? 'border-[#00fff7] shadow-[0_0_8px_#00fff730]' : 'hover:border-[#00fff7]'}
-        flex items-stretch group cursor-pointer transition-all`}
-      onClick={() => setSelectedItemId(isSelected ? null : item.id)}
+      ref={isDragOverlay ? undefined : setNodeRef}
+      style={{
+        ...style,
+        background:    task.important ? '#1f1e16' : 'var(--bg-elevated)',
+        border:        '1px solid var(--border-subtle)',
+        borderLeft:    task.important ? '3px solid var(--accent-orange)' : '1px solid var(--border-subtle)',
+        borderRadius:  10,
+        cursor:        'default',
+        transition:    'box-shadow 0.15s',
+        boxShadow:     isSelected ? '0 0 0 1px var(--accent-primary)' : 'none',
+      }}
+      className="group flex items-stretch"
+      onClick={() => setSelectedTask(isSelected ? null : task.id)}
     >
       {/* Drag handle */}
-      <div
-        {...attributes}
-        {...listeners}
-        onClick={e => e.stopPropagation()}
-        className="flex items-center px-1 text-[#444466] hover:text-[#cccccc] cursor-grab active:cursor-grabbing shrink-0"
-      >
-        <GripVertical size={13} />
-      </div>
+      {!isDragOverlay && (
+        <div
+          {...attributes}
+          {...listeners}
+          onClick={e => e.stopPropagation()}
+          style={{ padding: '0 4px', display: 'flex', alignItems: 'center', color: 'var(--text-muted)', cursor: 'grab', flexShrink: 0 }}
+          className="hover:text-text-secondary"
+        >
+          <GripVertical size={13} />
+        </div>
+      )}
 
       {/* Content */}
-      <div className="flex-1 px-2 py-2 min-w-0">
-        <p className={`text-sm font-medium leading-snug
-          ${item.status === 'done' ? 'line-through text-[#666688]' : 'text-[#ffffff] font-bold'}`}>
-          {item.title}
+      <div style={{ flex: 1, padding: '10px 8px 10px 4px', minWidth: 0 }}>
+        {/* Title */}
+        <p style={{
+          fontSize: 13, fontWeight: 500, lineHeight: 1.4,
+          color: task.status === 'done' ? 'var(--text-muted)' : 'var(--text-primary)',
+          textDecoration: task.status === 'done' ? 'line-through' : 'none',
+          wordBreak: 'break-word',
+        }}>
+          {task.important && <span style={{ marginRight: 4, color: 'var(--accent-orange)' }}>⚡</span>}
+          {task.title}
         </p>
 
-        <div className="flex flex-wrap gap-1 mt-1.5 items-center">
-          <Badge variant={item.type}>{item.type}</Badge>
-          {item.priority !== 'medium' && (
-            <Badge variant={item.priority}>{item.priority}</Badge>
+        {/* Badges row */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+          {/* Status */}
+          <Badge bg={statusC.bg} color={statusC.text}>{task.status}</Badge>
+
+          {/* Priority (hide medium to reduce noise) */}
+          {task.priority !== 'medium' && (
+            <Badge bg="transparent" color={prioC} border={`1px solid ${prioC}55`}>{task.priority}</Badge>
+          )}
+
+          {/* Due date */}
+          {task.dueDate && (
+            <Badge
+              bg="transparent"
+              color={overdue ? 'var(--accent-red)' : dueSoon ? 'var(--accent-orange)' : 'var(--text-muted)'}
+            >
+              {formatDueDate(task.dueDate)}
+            </Badge>
+          )}
+
+          {/* Source */}
+          {task.sourceType && task.sourceType !== 'manual' && srcColor && (
+            <Badge bg={srcColor.bg} color={srcColor.text}>
+              {task.sourceType === 'braindump' ? 'Brain Dump' : '📋 Meeting'}
+            </Badge>
           )}
         </div>
 
-        <div className="flex items-center justify-between mt-1.5">
-          {item.dueDate && (
-            <span className={`text-xs flex items-center gap-0.5
-              ${overdue ? 'text-[#ff3333]' : dueSoon ? 'text-[#ffd000]' : 'text-[#cccccc]'}`}>
-              <Calendar size={10} />
-              {formatDueDate(item.dueDate)}
-            </span>
-          )}
-          {item.subtasks.length > 0 && (
-            <span className="text-xs text-[#cccccc] ml-auto">
-              {doneSubtasks}/{item.subtasks.length}
-            </span>
-          )}
-          {item.type === 'goal' && item.progress > 0 && (
-            <span className="text-xs text-[#cccccc]">{item.progress}%</span>
-          )}
-        </div>
-
-        {/* Goal progress bar */}
-        {item.type === 'goal' && (
-          <div className="mt-1.5 h-1 bg-[#444466]">
-            <div
-              className="h-full bg-[#ffd000] transition-all"
-              style={{ width: `${item.progress}%` }}
-            />
-          </div>
+        {/* Subtask progress */}
+        {totalSubs > 0 && (
+          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            {doneSubs}/{totalSubs} subtasks
+          </p>
         )}
       </div>
+
+      {/* Hover actions */}
+      {!isDragOverlay && (
+        <div
+          className="opacity-0 group-hover:opacity-100 flex flex-col justify-start gap-1 pr-2 pt-2"
+          style={{ transition: 'opacity 0.15s', flexShrink: 0 }}
+          onClick={e => e.stopPropagation()}
+        >
+          <IconBtn icon={<Star size={11} fill={task.important ? 'var(--accent-orange)' : 'none'} />} color={task.important ? 'var(--accent-orange)' : undefined} onClick={() => updateTask(task.id, { important: !task.important })} title="Flag important" />
+          <IconBtn icon={<CalendarPlus size={11} />} onClick={handlePin} title="Pin to Tomorrow" />
+          <IconBtn icon={<Trash2 size={11} />} color="var(--accent-red)" onClick={() => deleteTask(task.id)} title="Delete" />
+        </div>
+      )}
     </div>
+  )
+}
+
+function Badge({ bg, color, border, children }) {
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 999,
+      background: bg, color, border: border || 'none', lineHeight: 1.6,
+    }}>
+      {children}
+    </span>
+  )
+}
+
+function IconBtn({ icon, color, onClick, title }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={{
+        color: color || 'var(--text-muted)', background: 'none', border: 'none',
+        padding: 3, borderRadius: 4, cursor: 'pointer', display: 'flex', alignItems: 'center',
+      }}
+      className="hover:text-text-primary"
+    >
+      {icon}
+    </button>
   )
 }

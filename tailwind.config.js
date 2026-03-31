@@ -7,20 +7,31 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        mono: ['"IBM Plex Mono"', '"Courier Prime"', 'Courier New', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       colors: {
-        // Dark Cyber palette
-        cyber: {
-          bg:        '#0d0d0d',
-          cyan:      '#00fff7',
-          magenta:   '#ff00ff',
-          amber:     '#ffb000',
-          red:       '#ff2020',
-          dim:       '#1a1a2e',
-          text:      '#e0e0e0',
-          'text-dim':'#444466',
-          border:    '#1e1e3a',
+        bg: {
+          base:     '#0d1117',
+          surface:  '#161b22',
+          elevated: '#1f2937',
+          overlay:  '#273244',
+        },
+        accent: {
+          primary: '#48b9c7',
+          orange:  '#e9a84c',
+          red:     '#e05c5c',
+          green:   '#4caf82',
+          purple:  '#9d7fe8',
+        },
+        text: {
+          primary:   '#e6edf3',
+          secondary: '#8b949e',
+          muted:     '#484f58',
+        },
+        border: {
+          subtle:  '#21262d',
+          default: '#30363d',
+          accent:  '#48b9c7',
         },
       },
     },

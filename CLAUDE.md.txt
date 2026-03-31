@@ -1,0 +1,177 @@
+# CLAUDE.md — FocusBoard v2
+
+Read this fully before making any changes. This is the source of truth.
+
+---
+
+## What this is
+
+FocusBoard is a three-feature productivity tool for a user with ADHD and anxiety. The three features are: **Brain Dump**, **Task Board**, and **Meeting Notes**. Nothing else. Do not add features outside this scope without being asked.
+
+It runs entirely in the browser. No backend. No auth. No server. localStorage only. AI via direct Anthropic API calls.
+
+---
+
+## Tech stack — do not deviate
+
+| Concern | Choice |
+|---|---|
+| Framework | React 18 + Vite |
+| Styling | Tailwind CSS v3 (NOT v4) |
+| State | Zustand with localStorage sync |
+| Drag and drop | @dnd-kit/core + @dnd-kit/sortable |
+| AI | Anthropic API, browser fetch, streaming |
+| Dates | date-fns |
+| Icons | lucide-react |
+| Font | Inter (Google Fonts, loaded in index.html) |
+
+Do not add new dependencies without a clear reason.
+
+---
+
+## Design — Cosmic/Pop!_OS aesthetic
+
+This is a dark-mode-only app. All colors are defined as CSS custom properties in `src/index.css`.
+
+```css
+:root {
+  --bg-base:        #0d1117;
+  --bg-surface:     #161b22;
+  --bg-elevated:    #1f2937;
+  --bg-overlay:     #273244;
+  --accent-primary: #48b9c7;
+  --accent-orange:  #e9a84c;
+  --accent-red:     #e05c5c;
+  --accent-green:   #4caf82;
+  --accent-purple:  #9d7fe8;
+  --text-primary:   #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted:     #484f58;
+  --border-subtle:  #21262d;
+  --border-default: #30363d;
+  --border-accent:  #48b9c7;
+}
+```
+
+### Rules that cannot be changed without being asked:
+- Background is always dark. No light mode.
+- Cards: `var(--bg-surface)`, `border: 1px solid var(--border-subtle)`, `border-radius: 12px`
+- Inputs: `var(--bg-elevated)` bg, focus ring `var(--accent-primary)`
+- **Important flag = orange left border** (`border-left: 3px solid var(--accent-orange)`). Applies to both brain dump items and task cards. Flagged items sort to the top of their list.
+- **Overdue tasks** = red left border (`var(--accent-red)`). Auto-applied, not toggleable.
+- **Due within 48h** = orange left border (`var(--accent-orange)`).
+- Meeting-sourced tasks carry a purple source chip (`var(--accent-purple)`).
+- No gradients. No heavy blur effects. Clean flat surfaces with subtle borders only.
+
+---
+
+## The 7 buckets
+
+The task board has exactly these buckets in this order. They are seeded on first load and must always be present:
+
+1. Site Startup Support
+2. MES/Automation
+3. Process School
+4. Supply Chain
+5. Data Trending/APR
+6. Process Cleaning
+7. Contamination Control
+
+Users may add custom buckets after these. They may not delete the 7 core buckets.
+
+---
+
+## State — Zustand store
+
+All state lives in `src/store/useStore.js`. Rules:
+
+- Every mutation syncs to localStorage immediately.
+- localStorage keys: `fb_tasks`, `fb_braindump`, `fb_meetings`, `fb_settings`
+- Never store derived/computed values in state — compute in selectors or `useMemo`.
+- Never mutate state directly — always use store actions.
+- The store shape is defined in the build prompt. Do not change it.
+
+---
+
+## AI rules
+
+All Claude API logic lives in `src/hooks/useAI.js`. No fetch calls scattered in components.
+
+### Base system prompt — always prepend this:
+
+```
+You are an assistant embedded in a personal productivity tool. The user has ADHD and anxiety. They:
+- Struggle to catch implicit expectations, social commitments, or details said between the lines
+- Tend to miss follow-up items not explicitly assigned to them
+- Can become overwhelmed by long lists or vague direction
+- Need proactive, specific, direct help — not generic advice
+
+Be calm, direct, and specific. Use short bullets over paragraphs. Surface what they might miss. Never be vague.
+
+The user's name is: [userName from settings]
+Their work buckets are: Site Startup Support, MES/Automation, Process School, Supply Chain, Data Trending/APR, Process Cleaning, Contamination Control.
+```
+
+### Streaming
+Use the Anthropic streaming API for all user-visible responses. Process `ReadableStream` and render text progressively. Do not wait for the full response.
+
+### Model
+Always `claude-sonnet-4-20250514`. Not configurable.
+
+### API key
+Read from store: `useStore.getState().settings.apiKey`. If not set, render: *"Add your Anthropic API key in Settings to use AI features."* Never throw, never crash, never log the key.
+
+---
+
+## Drag and drop
+
+- Drag handle only: the `⠿` glyph on the left edge of task cards.
+- Card body click = open detail panel. Do not conflict these two interactions.
+- Cards sortable within a column and movable between columns.
+- On drop: update store immediately. No animation delay on state update.
+- Drag overlay: `opacity: 0.5` on original, full card rendered in DragOverlay with a teal glow.
+
+---
+
+## UX rules — never remove
+
+- **Autosave**: every change writes immediately. No save buttons anywhere.
+- **Undo toast**: deleting anything shows a 5-second undo toast. Deletion is deferred until toast expires.
+- **`N` shortcut**: pressing N outside an input focuses the Brain Dump textarea.
+- **No confirmation dialogs** for minor actions. Only confirm destructive actions (delete task, clear all data).
+- **Empty states**: warm, specific copy. Not "No items found."
+- **No API key = graceful degradation**, not an error.
+
+---
+
+## Layout
+
+- Three-panel: Brain Dump (left, 280px fixed) | Task Board (center, flex-grow) | Meeting Notes (right, 320px fixed)
+- Both side panels are collapsible via a toggle arrow.
+- Below 1024px: tab-based navigation between the three panels.
+- Header: 48px, app name in `var(--accent-primary)`, settings icon right.
+- Task detail panel: `position: fixed`, right edge, full height, 400px wide. Overlays content.
+
+---
+
+## What not to do
+
+- Do not add a Today view, Timeline view, or any feature from v1 that isn't in this spec
+- Do not add a backend, database, or auth
+- Do not use TypeScript
+- Do not use CSS Modules or styled-components — Tailwind + CSS custom properties only
+- Do not use a router library — `currentView` string in the store for any view switching
+- Do not make the 7 core buckets deletable
+- Do not add light mode
+- Do not over-engineer — simpler is always better
+
+---
+
+## Run
+
+```bash
+npm install
+npm run dev
+```
+
+No environment variables. API key supplied by user in Settings UI.

@@ -1,133 +1,127 @@
 import { useState } from 'react'
-import { useDroppable } from '@dnd-kit/core'
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { useDroppable } from '@dnd-kit/core'
+import { Plus } from 'lucide-react'
 import useStore from '../../store/useStore'
-import { ItemCard } from './ItemCard'
-import { Button } from '../ui/Button'
-import { Plus, Trash2, Edit3, Check, X } from 'lucide-react'
+import TaskCard from './TaskCard'
 
-export function BucketColumn({ bucket, project }) {
-  const { addItem, updateBucket, deleteBucket } = useStore()
-  const [addingItem, setAddingItem] = useState(false)
-  const [newItemTitle, setNewItemTitle] = useState('')
-  const [editingName, setEditingName] = useState(false)
-  const [nameValue, setNameValue] = useState(bucket.name)
+const STATUS_OPTIONS   = ['backlog', 'todo', 'in-progress', 'done']
+const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent']
 
-  const { setNodeRef, isOver } = useDroppable({
-    id: bucket.id,
-    data: { type: 'bucket', bucketId: bucket.id, projectId: project.id },
+export default function BucketColumn({ bucket }) {
+  const { addTask } = useStore()
+  const [adding, setAdding]   = useState(false)
+  const [form, setForm]       = useState({ title: '', status: 'todo', priority: 'medium', dueDate: '' })
+
+  const { setNodeRef, isOver } = useDroppable({ id: bucket.id })
+
+  // Important tasks sort first
+  const sorted = [...bucket.tasks].sort((a, b) => {
+    if (a.important && !b.important) return -1
+    if (!a.important && b.important) return 1
+    return 0
   })
 
-  function handleAddItem() {
-    if (!newItemTitle.trim()) return
-    addItem(project.id, bucket.id, { title: newItemTitle.trim(), status: 'todo' })
-    setNewItemTitle('')
-    setAddingItem(false)
-  }
-
-  function handleSaveName() {
-    if (nameValue.trim()) updateBucket(project.id, bucket.id, { name: nameValue.trim() })
-    setEditingName(false)
-  }
-
-  function handleDeleteBucket() {
-    if (bucket.items.length > 0) {
-      if (!window.confirm(`Delete "${bucket.name}" and its ${bucket.items.length} item(s)?`)) return
-    }
-    deleteBucket(project.id, bucket.id)
+  function submit() {
+    const title = form.title.trim()
+    if (!title) return
+    addTask(bucket.id, { title, status: form.status, priority: form.priority, dueDate: form.dueDate || null })
+    setForm({ title: '', status: 'todo', priority: 'medium', dueDate: '' })
+    setAdding(false)
   }
 
   return (
-    <div className="flex flex-col w-64 shrink-0">
-      {/* Bucket header */}
-      <div className="flex items-center justify-between px-2 py-1.5 border border-[#444466] bg-[#111118] mb-2">
-        {editingName ? (
-          <input
-            autoFocus
-            value={nameValue}
-            onChange={e => setNameValue(e.target.value)}
-            onBlur={handleSaveName}
-            onKeyDown={e => {
-              if (e.key === 'Enter') handleSaveName()
-              if (e.key === 'Escape') { setNameValue(bucket.name); setEditingName(false) }
-            }}
-            className="flex-1 font-mono text-sm bg-transparent outline-none border-b border-[#00fff7] text-[#ffffff] font-bold"
-          />
-        ) : (
-          <span
-            className="font-mono font-bold text-sm text-[#ffffff] cursor-text flex-1 uppercase tracking-wider"
-            onClick={() => setEditingName(true)}
-            title="Click to rename"
-          >
-            {bucket.name}
-          </span>
-        )}
-        <span className="text-xs font-mono text-[#cccccc] ml-2">{bucket.items.length}</span>
-        <div className="flex gap-1 ml-1 opacity-40 hover:opacity-100">
-          <button onClick={() => setEditingName(true)} className="text-[#cccccc] hover:text-[#00fff7]">
-            <Edit3 size={11} />
-          </button>
-          <button onClick={handleDeleteBucket} className="text-[#cccccc] hover:text-[#ff3333]">
-            <Trash2 size={11} />
-          </button>
-        </div>
+    <div
+      className="flex flex-col shrink-0 rounded-xl"
+      style={{
+        width: 260, height: '100%',
+        background: isOver ? 'rgba(72,185,199,0.05)' : 'var(--bg-surface)',
+        border: `1px solid ${isOver ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
+        transition: 'border-color 0.15s, background 0.15s',
+      }}
+    >
+      {/* Column header */}
+      <div className="flex items-center justify-between px-3 py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+          {bucket.name}
+        </span>
+        <span
+          style={{
+            fontSize: 10, fontWeight: 600, background: 'var(--bg-elevated)',
+            color: 'var(--text-muted)', borderRadius: 999, padding: '2px 8px',
+          }}
+        >
+          {bucket.tasks.length}
+        </span>
       </div>
 
-      {/* Drop zone */}
-      <div
-        ref={setNodeRef}
-        className={`flex-1 flex flex-col gap-2 min-h-24 p-1 transition-colors
-          ${isOver ? 'bg-[#00fff710] ring-1 ring-[#00fff7]' : ''}`}
-      >
-        <SortableContext items={bucket.items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-          {bucket.items.length === 0 && !isOver && (
-            <div className="text-xs font-mono text-[#cccccc] italic text-center py-4">
-              Empty. Drop or add items.
-            </div>
-          )}
-          {bucket.items.map(item => (
-            <ItemCard key={item.id} item={item} projectId={project.id} bucketId={bucket.id} />
+      {/* Task list */}
+      <div ref={setNodeRef} className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-2">
+        <SortableContext items={sorted.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          {sorted.map(task => (
+            <TaskCard key={task.id} task={{ ...task, bucketId: bucket.id, bucketName: bucket.name }} />
           ))}
         </SortableContext>
 
-        {/* Add item form */}
-        {addingItem ? (
-          <div className="flex flex-col gap-1.5 p-1.5 border border-[#444466] bg-[#111118]">
+        {/* Inline add form */}
+        {adding && (
+          <div className="flex flex-col gap-2 p-2 rounded-lg" style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border-default)' }}>
             <input
               autoFocus
-              value={newItemTitle}
-              onChange={e => setNewItemTitle(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === 'Enter') handleAddItem()
-                if (e.key === 'Escape') { setAddingItem(false); setNewItemTitle('') }
-              }}
-              placeholder="Item title…"
-              className="font-mono font-bold text-sm bg-transparent border-b border-[#444466] focus:border-[#00fff7] outline-none text-[#ffffff] placeholder-[#666688] py-0.5"
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              onKeyDown={e => { if (e.key === 'Enter') submit(); if (e.key === 'Escape') setAdding(false) }}
+              placeholder="Task title"
+              style={{ padding: '5px 8px', fontSize: 13, background: 'var(--bg-base)', border: '1px solid var(--border-default)', borderRadius: 6, color: 'var(--text-primary)', outline: 'none', width: '100%' }}
             />
             <div className="flex gap-1">
-              <button
-                onClick={handleAddItem}
-                className="text-xs font-mono text-[#080808] bg-[#00fff7] hover:bg-[#00fff7cc] px-2 py-0.5 flex items-center gap-1 font-bold"
+              <select
+                value={form.status}
+                onChange={e => setForm(f => ({ ...f, status: e.target.value }))}
+                style={selectStyle}
               >
-                <Check size={10} /> Add
-              </button>
-              <button
-                onClick={() => { setAddingItem(false); setNewItemTitle('') }}
-                className="text-xs font-mono text-[#cccccc] hover:text-[#ffffff] px-1"
+                {STATUS_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <select
+                value={form.priority}
+                onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}
+                style={selectStyle}
               >
-                <X size={10} />
-              </button>
+                {PRIORITY_OPTIONS.map(p => <option key={p} value={p}>{p}</option>)}
+              </select>
+            </div>
+            <input
+              type="date"
+              value={form.dueDate}
+              onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
+              style={{ ...selectStyle, width: '100%' }}
+            />
+            <div className="flex gap-1">
+              <button onClick={submit} style={{ flex: 1, padding: '4px', background: 'var(--accent-primary)', color: '#0d1117', border: 'none', borderRadius: 5, fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>Add</button>
+              <button onClick={() => setAdding(false)} style={{ flex: 1, padding: '4px', background: 'none', color: 'var(--text-secondary)', border: '1px solid var(--border-default)', borderRadius: 5, fontSize: 12, cursor: 'pointer' }}>Cancel</button>
             </div>
           </div>
-        ) : (
-          <button
-            onClick={() => setAddingItem(true)}
-            className="flex items-center gap-1 text-xs font-mono text-[#cccccc] hover:text-[#00fff7] px-1 py-1.5 transition-colors"
-          >
-            <Plus size={12} /> Add item
-          </button>
         )}
       </div>
+
+      {/* Add task button */}
+      {!adding && (
+        <div className="px-2 pb-2">
+          <button
+            onClick={() => setAdding(true)}
+            className="flex items-center gap-1 w-full rounded-lg"
+            style={{ padding: '6px 8px', fontSize: 12, color: 'var(--text-muted)', background: 'transparent', border: '1px dashed var(--border-subtle)', cursor: 'pointer' }}
+          >
+            <Plus size={13} /> Add task
+          </button>
+        </div>
+      )}
     </div>
   )
+}
+
+const selectStyle = {
+  flex: 1, padding: '4px 6px', fontSize: 11,
+  background: 'var(--bg-base)', border: '1px solid var(--border-default)',
+  borderRadius: 5, color: 'var(--text-secondary)', outline: 'none',
 }

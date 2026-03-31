@@ -1,104 +1,71 @@
+// Storage keys
 const KEYS = {
-  PROJECTS: 'focusboard_projects',
-  BRAINDUMP: 'focusboard_braindump',
-  MEETINGS: 'focusboard_meetings',
-  SETTINGS: 'focusboard_settings',
-  NUDGES_DATE: 'focusboard_nudges_last_generated',
-  NUDGES_DATA: 'focusboard_nudges_data',
+  TASKS:     'fb_tasks',
+  BRAINDUMP: 'fb_braindump',
+  MEETINGS:  'fb_meetings',
+  SETTINGS:  'fb_settings',
+  PLANNER:   'fb_planner',
 }
 
-export function loadProjects() {
-  try {
-    const raw = localStorage.getItem(KEYS.PROJECTS)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+export function loadTasks() {
+  try { return JSON.parse(localStorage.getItem(KEYS.TASKS)) } catch { return null }
 }
-
-export function saveProjects(projects) {
-  localStorage.setItem(KEYS.PROJECTS, JSON.stringify(projects))
+export function saveTasks(data) {
+  localStorage.setItem(KEYS.TASKS, JSON.stringify(data))
 }
 
 export function loadBrainDump() {
-  try {
-    const raw = localStorage.getItem(KEYS.BRAINDUMP)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+  try { return JSON.parse(localStorage.getItem(KEYS.BRAINDUMP)) || [] } catch { return [] }
 }
-
 export function saveBrainDump(items) {
   localStorage.setItem(KEYS.BRAINDUMP, JSON.stringify(items))
 }
 
 export function loadMeetings() {
-  try {
-    const raw = localStorage.getItem(KEYS.MEETINGS)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
+  try { return JSON.parse(localStorage.getItem(KEYS.MEETINGS)) || [] } catch { return [] }
 }
-
 export function saveMeetings(meetings) {
   localStorage.setItem(KEYS.MEETINGS, JSON.stringify(meetings))
 }
 
 export function loadSettings() {
   try {
-    const raw = localStorage.getItem(KEYS.SETTINGS)
-    return raw ? JSON.parse(raw) : { apiKey: '', userName: '', focusMode: false }
+    return JSON.parse(localStorage.getItem(KEYS.SETTINGS)) || { apiKey: '', userName: '' }
   } catch {
-    return { apiKey: '', userName: '', focusMode: false }
+    return { apiKey: '', userName: '' }
   }
 }
-
-export function saveSettings(settings) {
-  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(settings))
+export function saveSettings(s) {
+  localStorage.setItem(KEYS.SETTINGS, JSON.stringify(s))
 }
 
-export function loadNudgesDate() {
-  return localStorage.getItem(KEYS.NUDGES_DATE) || null
+export function loadPlanner() {
+  try { return JSON.parse(localStorage.getItem(KEYS.PLANNER)) || {} } catch { return {} }
 }
-
-export function saveNudgesDate(date) {
-  localStorage.setItem(KEYS.NUDGES_DATE, date)
-}
-
-export function loadNudgesData() {
-  try {
-    const raw = localStorage.getItem(KEYS.NUDGES_DATA)
-    return raw ? JSON.parse(raw) : []
-  } catch {
-    return []
-  }
-}
-
-export function saveNudgesData(nudges) {
-  localStorage.setItem(KEYS.NUDGES_DATA, JSON.stringify(nudges))
+export function savePlanner(p) {
+  localStorage.setItem(KEYS.PLANNER, JSON.stringify(p))
 }
 
 export function exportAllData() {
-  const data = {
-    focusboard_projects: loadProjects(),
-    focusboard_braindump: loadBrainDump(),
-    focusboard_meetings: loadMeetings(),
-    focusboard_settings: loadSettings(),
-    exportedAt: new Date().toISOString(),
-  }
-  return JSON.stringify(data, null, 2)
+  return JSON.stringify({
+    fb_tasks:     loadTasks(),
+    fb_braindump: loadBrainDump(),
+    fb_meetings:  loadMeetings(),
+    fb_settings:  loadSettings(),
+    fb_planner:   loadPlanner(),
+    exportedAt:   new Date().toISOString(),
+  }, null, 2)
 }
 
 export function importAllData(jsonString) {
-  const data = JSON.parse(jsonString)
-  if (data.focusboard_projects) saveProjects(data.focusboard_projects)
-  if (data.focusboard_braindump) saveBrainDump(data.focusboard_braindump)
-  if (data.focusboard_meetings) saveMeetings(data.focusboard_meetings)
-  if (data.focusboard_settings) saveSettings(data.focusboard_settings)
+  const d = JSON.parse(jsonString)
+  if (d.fb_tasks)     saveTasks(d.fb_tasks)
+  if (d.fb_braindump) saveBrainDump(d.fb_braindump)
+  if (d.fb_meetings)  saveMeetings(d.fb_meetings)
+  if (d.fb_settings)  saveSettings(d.fb_settings)
+  if (d.fb_planner)   savePlanner(d.fb_planner)
 }
 
 export function clearAllData() {
-  Object.values(KEYS).forEach(key => localStorage.removeItem(key))
+  Object.values(KEYS).forEach(k => localStorage.removeItem(k))
 }

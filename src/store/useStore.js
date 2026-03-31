@@ -1,463 +1,445 @@
 import { create } from 'zustand'
 import { generateId } from '../utils/uuid'
 import {
-  loadProjects, saveProjects,
+  loadTasks, saveTasks,
   loadBrainDump, saveBrainDump,
   loadMeetings, saveMeetings,
   loadSettings, saveSettings,
+  loadPlanner, savePlanner,
 } from '../utils/storage'
+import { tomorrowISO } from '../utils/dates'
 
-// ─── Seed Data ───────────────────────────────────────────────────────────────
-// Creates the 5 default work buckets (as projects) on first run.
-// Each project gets standard Kanban buckets inside it.
-function createSeedData() {
-  const NAMED_BUCKETS = [
-    'Contamination Control Group',
-    'Cleaning Process Group',
-    'MES & Automation',
-    'Process Development',
-    'Data Trending & APR',
-  ]
-  const COLORS = ['#00fff7', '#ff00ff', '#ffb000', '#7b97b0', '#8aab8a']
+// ── Default buckets ───────────────────────────────────────────────────────────
+const DEFAULT_BUCKET_NAMES = [
+  'Site Startup Support',
+  'MES/Automation',
+  'Process School',
+  'Supply Chain',
+  'Data Trending/APR',
+  'Process Cleaning',
+  'Contamination Control',
+]
 
-  return NAMED_BUCKETS.map((name, i) => ({
-    id: generateId(),
-    name,
-    color: COLORS[i] || '#7b97b0',
-    createdAt: new Date().toISOString(),
-    buckets: [
-      { id: generateId(), name: 'Backlog',     order: 0, items: [] },
-      { id: generateId(), name: 'Next Up',     order: 1, items: [] },
-      { id: generateId(), name: 'In Progress', order: 2, items: [] },
-      { id: generateId(), name: 'Done',        order: 3, items: [] },
-    ],
-  }))
+function makeBucket(name, order) {
+  return { id: generateId(), name, order, tasks: [] }
 }
 
-// ─── Store ────────────────────────────────────────────────────────────────────
-const useStore = create((set, get) => ({
-  // ── State ──────────────────────────────────────────────────────────────────
-  projects: loadProjects() || createSeedData(),
-  brainDump: loadBrainDump(),
-  meetings: loadMeetings(),
-  settings: loadSettings(),
-  activeView: 'braindump',
-  activeProjectId: null,
-  selectedItemId: null,
-  toast: null,
-  toastTimer: null,
-  undoStack: [], // { type, payload } for undo actions
+// ── Seed data ─────────────────────────────────────────────────────────────────
+function createSeedData() {
+  const buckets = DEFAULT_BUCKET_NAMES.map((name, i) => makeBucket(name, i))
 
-  // ── Init ────────────────────────────────────────────────────────────────────
-  init() {
-    const { projects } = get()
-    if (projects.length > 0 && !get().activeProjectId) {
-      set({ activeProjectId: projects[0].id })
-    }
-  },
+  // Seed tasks
+  const now = new Date().toISOString()
+  const soon = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
-  // ── Navigation ─────────────────────────────────────────────────────────────
-  setActiveView(view) { set({ activeView: view }) },
-  setActiveProjectId(id) { set({ activeProjectId: id }) },
-  setSelectedItemId(id) { set({ selectedItemId: id }) },
+  buckets[0].tasks.push({
+    id: generateId(), title: 'Review site startup checklist',
+    description: 'Go through the latest version and flag any gaps.',
+    status: 'in-progress', priority: 'high', dueDate: soon,
+    important: true, subtasks: [
+      { id: generateId(), title: 'Check equipment readiness', done: false },
+      { id: generateId(), title: 'Confirm team sign-offs', done: false },
+    ],
+    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+  })
 
-  // ── Toast ───────────────────────────────────────────────────────────────────
-  showToast(message, undoFn = null) {
-    const { toastTimer } = get()
-    if (toastTimer) clearTimeout(toastTimer)
-    const timer = setTimeout(() => set({ toast: null, toastTimer: null }), 5000)
-    set({ toast: { message, undoFn }, toastTimer: timer })
-  },
-  dismissToast() {
-    const { toastTimer } = get()
-    if (toastTimer) clearTimeout(toastTimer)
-    set({ toast: null, toastTimer: null })
-  },
+  buckets[1].tasks.push({
+    id: generateId(), title: 'Validate MES batch record changes',
+    description: '',
+    status: 'todo', priority: 'medium', dueDate: null,
+    important: false, subtasks: [],
+    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+  })
 
-  // ── Settings ────────────────────────────────────────────────────────────────
-  updateSettings(updates) {
-    const settings = { ...get().settings, ...updates }
-    set({ settings })
-    saveSettings(settings)
-  },
+  buckets[4].tasks.push({
+    id: generateId(), title: 'Update APR trending charts for Q1',
+    description: 'Include the new process parameters agreed in March.',
+    status: 'backlog', priority: 'low', dueDate: null,
+    important: false, subtasks: [],
+    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+  })
 
-  // ── Projects ────────────────────────────────────────────────────────────────
-  addProject(name, color = '#7b97b0') {
-    const newProject = {
-      id: generateId(),
-      name,
-      color,
-      createdAt: new Date().toISOString(),
-      buckets: [
-        { id: generateId(), name: 'Backlog', order: 0, items: [] },
-        { id: generateId(), name: 'To Do', order: 1, items: [] },
-        { id: generateId(), name: 'In Progress', order: 2, items: [] },
-        { id: generateId(), name: 'Done', order: 3, items: [] },
-      ],
-    }
-    const projects = [...get().projects, newProject]
-    set({ projects, activeProjectId: newProject.id })
-    saveProjects(projects)
-  },
+  return { buckets }
+}
 
-  updateProject(projectId, updates) {
-    const projects = get().projects.map(p =>
-      p.id === projectId ? { ...p, ...updates } : p
-    )
-    set({ projects })
-    saveProjects(projects)
-  },
+function createSeedBrainDump() {
+  const now = new Date().toISOString()
+  return [
+    {
+      id: generateId(), text: 'Need to follow up with QA about the cleaning SOP — they mentioned a revision was coming',
+      important: true, createdAt: now,
+    },
+    {
+      id: generateId(), text: 'Contamination RCA meeting scheduled — check if action items from last time were closed',
+      important: false, createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: generateId(), text: 'Ask about the timeline for Process School module 3 materials',
+      important: false, createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+    },
+  ]
+}
 
-  deleteProject(projectId) {
-    const projects = get().projects.filter(p => p.id !== projectId)
-    const activeProjectId = projects.length > 0 ? projects[0].id : null
-    set({ projects, activeProjectId })
-    saveProjects(projects)
-  },
+function createSeedMeeting(buckets) {
+  const meetingId = generateId()
+  const taskId = generateId()
+  const now = new Date().toISOString()
 
-  // ── Buckets ─────────────────────────────────────────────────────────────────
-  addBucket(projectId, name) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      const maxOrder = p.buckets.reduce((m, b) => Math.max(m, b.order), -1)
-      return {
-        ...p,
-        buckets: [...p.buckets, {
-          id: generateId(),
-          name,
-          order: maxOrder + 1,
-          items: [],
-        }],
+  // Add the linked task to bucket 5 (Process Cleaning)
+  const task = {
+    id: taskId, title: 'Review updated cleaning validation protocol',
+    description: 'From the March 28 Cross-Functional meeting. QA expects comments by EOW.',
+    status: 'todo', priority: 'high',
+    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
+    important: true, subtasks: [],
+    sourceType: 'meeting', meetingId,
+    createdAt: now, updatedAt: now,
+  }
+  buckets[5].tasks.push(task)
+
+  const meeting = {
+    id: meetingId,
+    title: 'Cross-Functional Site Readiness Review',
+    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    attendees: 'Sarah (QA), Mike (Engineering), Priya (Supply Chain), Raj (MES)',
+    rawNotes: `Discussed site startup timeline. QA flagged cleaning validation protocol needs review before IQ/OQ. Mike to check equipment calibration schedule. Supply chain confirmed resin delivery for April 12. Priya mentioned the vendor audit is next month — unclear if anyone has started prep. Raj said the MES batch record changes are 80% done but need sign-off from QA before go-live.`,
+    processed: true,
+    extractedData: {
+      actionItems: [{ id: generateId(), text: 'Review updated cleaning validation protocol', bucketName: 'Process Cleaning' }],
+      decisions: ['Site startup IQ/OQ cannot proceed until cleaning validation is signed off'],
+      followUps: ['Check equipment calibration schedule with Mike', 'Confirm MES batch record QA sign-off timeline with Raj'],
+      deadlines: ['Resin delivery April 12', 'Vendor audit next month'],
+      mightHaveMissed: ['Vendor audit prep was flagged as uncertain — no owner was assigned. This could land on you if no one else picks it up.', 'MES sign-off dependency on QA could delay go-live — worth flagging now rather than waiting.'],
+      questionsToAsk: ['Who owns the vendor audit preparation?', 'What is the exact deadline for MES QA sign-off?'],
+    },
+    createdAt: now,
+  }
+
+  return { meeting, buckets }
+}
+
+// ── Store ─────────────────────────────────────────────────────────────────────
+const useStore = create((set, get) => {
+  // Load or seed
+  let tasksData = loadTasks()
+  let brainDump  = loadBrainDump()
+  let meetings   = loadMeetings()
+  const settings = loadSettings()
+  const planner  = loadPlanner()
+
+  if (!tasksData) {
+    const seed = createSeedData()
+    const bdSeed = createSeedBrainDump()
+    const { meeting, buckets } = createSeedMeeting(seed.buckets)
+    tasksData = { buckets }
+    brainDump = bdSeed
+    meetings = [meeting]
+    saveTasks(tasksData)
+    saveBrainDump(brainDump)
+    saveMeetings(meetings)
+  }
+
+  return {
+    // ── State ─────────────────────────────────────────────────────────────────
+    buckets:   tasksData.buckets,
+    brainDump,
+    meetings,
+    settings,
+    planner,
+
+    // UI state
+    activeView:       'board',   // 'board' | 'planner'
+    leftPanelOpen:    true,
+    rightPanelOpen:   true,
+    selectedTaskId:   null,
+    settingsOpen:     false,
+    activeMeetingId:  null,
+    toast:            null,
+    toastTimer:       null,
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+    setActiveView: (v)       => set({ activeView: v }),
+    setLeftPanel:  (open)    => set({ leftPanelOpen: open }),
+    setRightPanel: (open)    => set({ rightPanelOpen: open }),
+    setSelectedTask: (id)    => set({ selectedTaskId: id }),
+    setSettingsOpen: (open)  => set({ settingsOpen: open }),
+    setActiveMeeting: (id)   => set({ activeMeetingId: id }),
+
+    // ── Toast ─────────────────────────────────────────────────────────────────
+    showToast(msg) {
+      const { toastTimer } = get()
+      if (toastTimer) clearTimeout(toastTimer)
+      const t = setTimeout(() => set({ toast: null, toastTimer: null }), 3500)
+      set({ toast: msg, toastTimer: t })
+    },
+
+    // ── Settings ──────────────────────────────────────────────────────────────
+    updateSettings(updates) {
+      const s = { ...get().settings, ...updates }
+      set({ settings: s })
+      saveSettings(s)
+    },
+
+    // ── Buckets ───────────────────────────────────────────────────────────────
+    addBucket(name) {
+      const buckets = [...get().buckets, makeBucket(name, get().buckets.length)]
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
+    updateBucket(id, updates) {
+      const buckets = get().buckets.map(b => b.id === id ? { ...b, ...updates } : b)
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
+    deleteBucket(id) {
+      const buckets = get().buckets.filter(b => b.id !== id)
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
+    // ── Tasks ─────────────────────────────────────────────────────────────────
+    addTask(bucketId, partial = {}) {
+      const now = new Date().toISOString()
+      const task = {
+        id: generateId(),
+        title:       partial.title       || 'New task',
+        description: partial.description || '',
+        status:      partial.status      || 'todo',
+        priority:    partial.priority    || 'medium',
+        dueDate:     partial.dueDate     || null,
+        important:   partial.important   || false,
+        subtasks:    partial.subtasks    || [],
+        sourceType:  partial.sourceType  || 'manual',
+        meetingId:   partial.meetingId   || null,
+        createdAt: now, updatedAt: now,
       }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
+      const buckets = get().buckets.map(b =>
+        b.id === bucketId ? { ...b, tasks: [...b.tasks, task] } : b
+      )
+      set({ buckets, selectedTaskId: task.id })
+      saveTasks({ buckets })
+      return task.id
+    },
 
-  updateBucket(projectId, bucketId, updates) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      return {
-        ...p,
-        buckets: p.buckets.map(b => b.id === bucketId ? { ...b, ...updates } : b),
-      }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
-
-  deleteBucket(projectId, bucketId) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      return { ...p, buckets: p.buckets.filter(b => b.id !== bucketId) }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
-
-  reorderBuckets(projectId, orderedBucketIds) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      const bucketMap = Object.fromEntries(p.buckets.map(b => [b.id, b]))
-      const buckets = orderedBucketIds.map((id, idx) => ({ ...bucketMap[id], order: idx }))
-      return { ...p, buckets }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
-
-  // ── Items ───────────────────────────────────────────────────────────────────
-  addItem(projectId, bucketId, partial = {}) {
-    const newItem = {
-      id: generateId(),
-      type: partial.type || 'task',
-      title: partial.title || 'New item',
-      description: partial.description || '',
-      status: partial.status || 'todo',
-      priority: partial.priority || 'medium',
-      dueDate: partial.dueDate || null,
-      assignee: partial.assignee || '',
-      subtasks: partial.subtasks || [],
-      progress: partial.progress || 0,
-      pinnedToday: partial.pinnedToday || false,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      return {
-        ...p,
-        buckets: p.buckets.map(b =>
-          b.id === bucketId ? { ...b, items: [...b.items, newItem] } : b
-        ),
-      }
-    })
-    set({ projects, selectedItemId: newItem.id })
-    saveProjects(projects)
-    return newItem.id
-  },
-
-  updateItem(itemId, updates) {
-    const projects = get().projects.map(p => ({
-      ...p,
-      buckets: p.buckets.map(b => ({
+    updateTask(taskId, updates) {
+      const buckets = get().buckets.map(b => ({
         ...b,
-        items: b.items.map(item =>
-          item.id === itemId
-            ? { ...item, ...updates, updatedAt: new Date().toISOString() }
-            : item
+        tasks: b.tasks.map(t =>
+          t.id === taskId ? { ...t, ...updates, updatedAt: new Date().toISOString() } : t
         ),
-      })),
-    }))
-    set({ projects })
-    saveProjects(projects)
-  },
+      }))
+      set({ buckets })
+      saveTasks({ buckets })
+    },
 
-  deleteItem(itemId) {
-    // Find item for undo
-    let deletedItem = null
-    let deletedProjectId = null
-    let deletedBucketId = null
-    for (const p of get().projects) {
-      for (const b of p.buckets) {
-        const item = b.items.find(i => i.id === itemId)
-        if (item) { deletedItem = item; deletedProjectId = p.id; deletedBucketId = b.id }
-      }
-    }
-
-    const projects = get().projects.map(p => ({
-      ...p,
-      buckets: p.buckets.map(b => ({
+    deleteTask(taskId) {
+      const buckets = get().buckets.map(b => ({
         ...b,
-        items: b.items.filter(i => i.id !== itemId),
-      })),
-    }))
-    set({ projects })
-    saveProjects(projects)
+        tasks: b.tasks.filter(t => t.id !== taskId),
+      }))
+      set({ buckets, selectedTaskId: get().selectedTaskId === taskId ? null : get().selectedTaskId })
+      saveTasks({ buckets })
+      get().showToast('Task deleted')
+    },
 
-    if (deletedItem) {
-      get().showToast(`"${deletedItem.title}" deleted`, () => {
-        get().restoreItem(deletedProjectId, deletedBucketId, deletedItem)
+    moveTask(taskId, toBucketId, toIndex) {
+      let task = null
+      let buckets = get().buckets.map(b => {
+        const found = b.tasks.find(t => t.id === taskId)
+        if (found) task = found
+        return { ...b, tasks: b.tasks.filter(t => t.id !== taskId) }
       })
-    }
-  },
+      if (!task) return
+      buckets = buckets.map(b => {
+        if (b.id !== toBucketId) return b
+        const tasks = [...b.tasks]
+        tasks.splice(toIndex, 0, task)
+        return { ...b, tasks }
+      })
+      set({ buckets })
+      saveTasks({ buckets })
+    },
 
-  restoreItem(projectId, bucketId, item) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      return {
-        ...p,
-        buckets: p.buckets.map(b =>
-          b.id === bucketId ? { ...b, items: [...b.items, item] } : b
-        ),
+    reorderTasks(bucketId, orderedIds) {
+      const buckets = get().buckets.map(b => {
+        if (b.id !== bucketId) return b
+        const map = Object.fromEntries(b.tasks.map(t => [t.id, t]))
+        return { ...b, tasks: orderedIds.map(id => map[id]).filter(Boolean) }
+      })
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
+    // Helper: find task by id
+    getTask(taskId) {
+      for (const b of get().buckets) {
+        const t = b.tasks.find(t => t.id === taskId)
+        if (t) return t
       }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
+      return null
+    },
 
-  moveItem(itemId, targetProjectId, targetBucketId, targetIndex) {
-    let movedItem = null
-    // Remove from source
-    let projects = get().projects.map(p => ({
-      ...p,
-      buckets: p.buckets.map(b => {
-        const item = b.items.find(i => i.id === itemId)
-        if (item) movedItem = item
-        return { ...b, items: b.items.filter(i => i.id !== itemId) }
-      }),
-    }))
-    if (!movedItem) return
-
-    // Insert into target
-    projects = projects.map(p => {
-      if (p.id !== targetProjectId) return p
-      return {
-        ...p,
-        buckets: p.buckets.map(b => {
-          if (b.id !== targetBucketId) return b
-          const items = [...b.items]
-          items.splice(targetIndex, 0, movedItem)
-          return { ...b, items }
-        }),
+    getTaskBucket(taskId) {
+      for (const b of get().buckets) {
+        if (b.tasks.find(t => t.id === taskId)) return b
       }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
+      return null
+    },
 
-  reorderItems(projectId, bucketId, orderedItemIds) {
-    const projects = get().projects.map(p => {
-      if (p.id !== projectId) return p
-      return {
-        ...p,
-        buckets: p.buckets.map(b => {
-          if (b.id !== bucketId) return b
-          const itemMap = Object.fromEntries(b.items.map(i => [i.id, i]))
-          const items = orderedItemIds.map(id => itemMap[id]).filter(Boolean)
-          return { ...b, items }
-        }),
+    getAllTasks() {
+      return get().buckets.flatMap(b => b.tasks.map(t => ({ ...t, bucketId: b.id, bucketName: b.name })))
+    },
+
+    // Subtasks
+    addSubtask(taskId, title) {
+      const task = get().getTask(taskId)
+      if (!task) return
+      get().updateTask(taskId, {
+        subtasks: [...task.subtasks, { id: generateId(), title, done: false }],
+      })
+    },
+
+    toggleSubtask(taskId, subtaskId) {
+      const task = get().getTask(taskId)
+      if (!task) return
+      get().updateTask(taskId, {
+        subtasks: task.subtasks.map(s => s.id === subtaskId ? { ...s, done: !s.done } : s),
+      })
+    },
+
+    deleteSubtask(taskId, subtaskId) {
+      const task = get().getTask(taskId)
+      if (!task) return
+      get().updateTask(taskId, {
+        subtasks: task.subtasks.filter(s => s.id !== subtaskId),
+      })
+    },
+
+    // ── Brain Dump ────────────────────────────────────────────────────────────
+    addBrainDumpItem(text) {
+      const item = { id: generateId(), text, important: false, createdAt: new Date().toISOString() }
+      const brainDump = [item, ...get().brainDump]
+      set({ brainDump })
+      saveBrainDump(brainDump)
+      return item.id
+    },
+
+    updateBrainDumpItem(id, updates) {
+      const brainDump = get().brainDump.map(i => i.id === id ? { ...i, ...updates } : i)
+      set({ brainDump })
+      saveBrainDump(brainDump)
+    },
+
+    deleteBrainDumpItem(id) {
+      const brainDump = get().brainDump.filter(i => i.id !== id)
+      set({ brainDump })
+      saveBrainDump(brainDump)
+    },
+
+    sendBrainDumpToBoard(itemId, bucketId) {
+      const item = get().brainDump.find(i => i.id === itemId)
+      if (!item) return
+      get().addTask(bucketId, { title: item.text, sourceType: 'braindump', important: item.important })
+      get().deleteBrainDumpItem(itemId)
+      get().showToast('Sent to board')
+    },
+
+    // ── Meetings ──────────────────────────────────────────────────────────────
+    saveMeeting(meeting) {
+      const existing = get().meetings.findIndex(m => m.id === meeting.id)
+      const meetings = existing >= 0
+        ? get().meetings.map(m => m.id === meeting.id ? meeting : m)
+        : [meeting, ...get().meetings]
+      set({ meetings })
+      saveMeetings(meetings)
+      return meeting
+    },
+
+    deleteMeeting(id) {
+      const meetings = get().meetings.filter(m => m.id !== id)
+      set({ meetings })
+      saveMeetings(meetings)
+    },
+
+    addTaskFromMeeting(bucketId, taskData) {
+      const id = get().addTask(bucketId, { ...taskData, sourceType: 'meeting' })
+      get().showToast('Added to board')
+      return id
+    },
+
+    // ── Planner ───────────────────────────────────────────────────────────────
+    getPlannerDay(date) {
+      return get().planner[date] || []
+    },
+
+    setPlannerSlots(date, slots) {
+      const planner = { ...get().planner, [date]: slots }
+      set({ planner })
+      savePlanner(planner)
+    },
+
+    addPlannerSlot(date, slotData) {
+      const slots = get().getPlannerDay(date)
+      if (slots.length >= 5) {
+        get().showToast("Tomorrow is full — remove a slot first")
+        return false
       }
-    })
-    set({ projects })
-    saveProjects(projects)
-  },
-
-  // ── Subtasks ─────────────────────────────────────────────────────────────────
-  addSubtask(itemId, title) {
-    get().updateItem(itemId, {
-      subtasks: [
-        ...(get().getItem(itemId)?.subtasks || []),
-        { id: generateId(), title, done: false },
-      ],
-    })
-  },
-
-  toggleSubtask(itemId, subtaskId) {
-    const item = get().getItem(itemId)
-    if (!item) return
-    get().updateItem(itemId, {
-      subtasks: item.subtasks.map(s =>
-        s.id === subtaskId ? { ...s, done: !s.done } : s
-      ),
-    })
-  },
-
-  deleteSubtask(itemId, subtaskId) {
-    const item = get().getItem(itemId)
-    if (!item) return
-    get().updateItem(itemId, {
-      subtasks: item.subtasks.filter(s => s.id !== subtaskId),
-    })
-  },
-
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-  getItem(itemId) {
-    for (const p of get().projects) {
-      for (const b of p.buckets) {
-        const item = b.items.find(i => i.id === itemId)
-        if (item) return item
+      const slot = {
+        id:          generateId(),
+        date,
+        order:       slots.length + 1,
+        title:       slotData.title       || '',
+        bucketName:  slotData.bucketName  || null,
+        taskId:      slotData.taskId      || null,
+        important:   slotData.important   || false,
+        done:        false,
+        timeContext: slotData.timeContext  || null,
       }
-    }
-    return null
-  },
+      const updated = [...slots, slot]
+      const planner = { ...get().planner, [date]: updated }
+      set({ planner })
+      savePlanner(planner)
+      return slot.id
+    },
 
-  getItemLocation(itemId) {
-    for (const p of get().projects) {
-      for (const b of p.buckets) {
-        const item = b.items.find(i => i.id === itemId)
-        if (item) return { project: p, bucket: b, item }
-      }
-    }
-    return null
-  },
-
-  getAllItems() {
-    const items = []
-    for (const p of get().projects) {
-      for (const b of p.buckets) {
-        for (const i of b.items) {
-          items.push({ ...i, projectId: p.id, projectName: p.name, projectColor: p.color, bucketId: b.id, bucketName: b.name })
+    updatePlannerSlot(date, slotId, updates) {
+      const slots = get().getPlannerDay(date).map(s =>
+        s.id === slotId ? { ...s, ...updates } : s
+      )
+      // If marking done and slot has a linked task, update that task too
+      if (updates.done === true) {
+        const slot = get().getPlannerDay(date).find(s => s.id === slotId)
+        if (slot?.taskId) {
+          get().updateTask(slot.taskId, { status: 'done' })
         }
       }
-    }
-    return items
-  },
+      const planner = { ...get().planner, [date]: slots }
+      set({ planner })
+      savePlanner(planner)
+    },
 
-  getProjectStats(projectId) {
-    const p = get().projects.find(pr => pr.id === projectId)
-    if (!p) return { total: 0, done: 0 }
-    let total = 0, done = 0
-    for (const b of p.buckets) {
-      for (const i of b.items) {
-        total++
-        if (i.status === 'done') done++
-      }
-    }
-    return { total, done }
-  },
+    deletePlannerSlot(date, slotId) {
+      const slots = get().getPlannerDay(date).filter(s => s.id !== slotId)
+      const planner = { ...get().planner, [date]: slots }
+      set({ planner })
+      savePlanner(planner)
+    },
 
-  // ── Brain Dump ───────────────────────────────────────────────────────────────
-  addBrainDumpItem(text, priority = 'normal', bucketId = null) {
-    const newItem = {
-      id: generateId(),
-      text,
-      priority,       // 'critical' | 'high' | 'normal' | 'low'
-      bucketId,       // nullable FK — links to a project (repurposed as project link)
-      promoted: false,
-      archived: false,
-      createdAt: new Date().toISOString(),
-    }
-    const brainDump = [newItem, ...get().brainDump]
-    set({ brainDump })
-    saveBrainDump(brainDump)
-    return newItem.id
-  },
-
-  deleteBrainDumpItem(id) {
-    const deleted = get().brainDump.find(i => i.id === id)
-    const brainDump = get().brainDump.filter(i => i.id !== id)
-    set({ brainDump })
-    saveBrainDump(brainDump)
-    if (deleted) {
-      get().showToast(`"${deleted.text.slice(0, 40)}..." removed`, () => {
-        const bd = [deleted, ...get().brainDump]
-        set({ brainDump: bd })
-        saveBrainDump(bd)
+    pinTaskToTomorrow(taskId) {
+      const task = get().getTask(taskId)
+      if (!task) return false
+      const bucket = get().getTaskBucket(taskId)
+      const date = tomorrowISO()
+      return get().addPlannerSlot(date, {
+        title:      task.title,
+        bucketName: bucket?.name || null,
+        taskId,
+        important:  task.important,
       })
-    }
-  },
-
-  updateBrainDumpItem(id, updates) {
-    const brainDump = get().brainDump.map(i => i.id === id ? { ...i, ...updates } : i)
-    set({ brainDump })
-    saveBrainDump(brainDump)
-  },
-
-  // Promote: convert to task in target project, dim in place
-  promoteBrainDumpItem(id, projectId, bucketTargetId) {
-    const item = get().brainDump.find(i => i.id === id)
-    if (!item) return
-    const project = get().projects.find(p => p.id === projectId)
-    if (!project) return
-    const bucket = project.buckets.find(b => b.id === bucketTargetId) || project.buckets[0]
-    if (!bucket) return
-    const itemId = get().addItem(project.id, bucket.id, {
-      title: item.text,
-      type: 'task',
-      priority: item.priority === 'critical' ? 'urgent'
-              : item.priority === 'high' ? 'high'
-              : item.priority === 'low' ? 'low'
-              : 'medium',
-    })
-    get().updateBrainDumpItem(id, { promoted: true, bucketId: project.id })
-    get().showToast(`Promoted to "${project.name} / ${bucket.name}"`)
-    return itemId
-  },
-
-  archiveBrainDumpItem(id) {
-    get().updateBrainDumpItem(id, { archived: true })
-  },
-
-  // ── Meetings ─────────────────────────────────────────────────────────────────
-  saveMeeting(meeting) {
-    const existing = get().meetings.findIndex(m => m.id === meeting.id)
-    let meetings
-    if (existing >= 0) {
-      meetings = get().meetings.map(m => m.id === meeting.id ? meeting : m)
-    } else {
-      meetings = [meeting, ...get().meetings]
-    }
-    set({ meetings })
-    saveMeetings(meetings)
-    return meeting
-  },
-
-  deleteMeeting(id) {
-    const meetings = get().meetings.filter(m => m.id !== id)
-    set({ meetings })
-    saveMeetings(meetings)
-  },
-}))
+    },
+  }
+})
 
 export default useStore

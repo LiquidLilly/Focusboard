@@ -1,8 +1,24 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-base:        #0d1117;
+  --bg-surface:     #161b22;
+  --bg-elevated:    #1f2937;
+  --bg-overlay:     #273244;
+  --accent-primary: #48b9c7;
+  --accent-orange:  #e9a84c;
+  --accent-red:     #e05c5c;
+  --accent-green:   #4caf82;
+  --accent-purple:  #9d7fe8;
+  --text-primary:   #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted:     #484f58;
+  --border-subtle:  #21262d;
+  --border-default: #30363d;
+  --border-accent:  #48b9c7;
+}
 
 * {
   box-sizing: border-box;
@@ -15,61 +31,63 @@ html, body, #root {
 }
 
 body {
-  font-family: 'IBM Plex Mono', 'Courier Prime', 'Courier New', monospace;
-  background-color: #080808;
-  color: #ffffff;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Cyber scrollbars */
+/* Scrollbars */
 ::-webkit-scrollbar {
   width: 4px;
   height: 4px;
 }
-
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: var(--border-default);
 }
-
 ::-webkit-scrollbar-thumb {
-  background: #444466;
+  background: var(--accent-primary);
+  border-radius: 2px;
 }
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #00fff740;
+  background: #5ecfdd;
 }
 
-/* Remove default button/input styles */
-button {
-  font-family: inherit;
+button { font-family: inherit; cursor: pointer; }
+input, textarea, select { font-family: inherit; }
+
+input[type="date"] { color-scheme: dark; }
+
+::selection {
+  background: rgba(72, 185, 199, 0.25);
+  color: var(--text-primary);
 }
 
-input, textarea, select {
-  font-family: inherit;
-}
-
-/* Focus ring — cyan glow */
+/* Focus rings */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 1px solid #00fff7;
+  outline: 2px solid var(--accent-primary);
   outline-offset: 1px;
 }
 
-/* Date input styling */
-input[type="date"] {
-  color-scheme: dark;
+/* Streaming text cursor blink */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.streaming-cursor::after {
+  content: '▋';
+  display: inline-block;
+  color: var(--accent-primary);
+  animation: blink 1s step-end infinite;
+  margin-left: 1px;
 }
 
-/* Range input */
-input[type="range"] {
-  cursor: pointer;
-  accent-color: #00fff7;
-}
-
-/* Selection */
-::selection {
-  background: #00fff730;
-  color: #00fff7;
+/* Drag ghost */
+.dnd-ghost {
+  opacity: 0.5;
+  box-shadow: 0 8px 24px rgba(72, 185, 199, 0.27);
 }
