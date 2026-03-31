@@ -29,11 +29,25 @@ export function saveMeetings(meetings) {
   localStorage.setItem(KEYS.MEETINGS, JSON.stringify(meetings))
 }
 
+const DEFAULT_SETTINGS = {
+  apiKey: '',
+  userName: '',
+  aiProvider: 'anthropic',
+  databricks: { pat: '', clientId: '', clientSecret: '', tenantId: '', pendingIT: false },
+}
+
 export function loadSettings() {
   try {
-    return JSON.parse(localStorage.getItem(KEYS.SETTINGS)) || { apiKey: '', userName: '' }
+    const stored = JSON.parse(localStorage.getItem(KEYS.SETTINGS))
+    if (!stored) return { ...DEFAULT_SETTINGS }
+    // Merge so new fields appear without wiping existing data
+    return {
+      ...DEFAULT_SETTINGS,
+      ...stored,
+      databricks: { ...DEFAULT_SETTINGS.databricks, ...(stored.databricks || {}) },
+    }
   } catch {
-    return { apiKey: '', userName: '' }
+    return { ...DEFAULT_SETTINGS }
   }
 }
 export function saveSettings(s) {

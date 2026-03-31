@@ -167,6 +167,35 @@ Read from store: `useStore.getState().settings.apiKey`. If not set, render: *"Ad
 
 ---
 
+## AI Provider System
+
+FocusBoard supports two AI providers, switchable in Settings:
+- `anthropic` — calls api.anthropic.com directly, uses Anthropic API key
+- `databricks` — calls Lilly's internal Azure Databricks Model Serving
+
+All feature code calls `callAI()` / `callAIStream()` from `useAI.js`.
+Never call `callClaude`, `callClaudeStream`, or Databricks functions directly from components.
+
+### Databricks config
+- Workspace URL is hardcoded: `adb-922850896362165.5.azuredatabricks.net`
+- Models are hardcoded (see `DATABRICKS_CONFIG` in `useAI.js`)
+- Auth supports PAT (priority) and Service Principal (OAuth client credentials)
+- If neither is configured, `callAI` returns a `{ _notConfigured: true, message }` object
+  and `callAIStream` calls `onChunk` with the message text — callers must never crash on this
+- Never throw, never crash, never log credentials
+
+### Adding auth later
+When IT provides service principal credentials, the user enters:
+- Client ID, Client Secret, Tenant ID
+in Settings → provider = Databricks → "Use Service Principal" section.
+No code changes needed — it activates automatically.
+
+### Token caching
+Azure AD tokens are cached in the `_tokenCache` object in `useAI.js` (memory only, not localStorage).
+They auto-refresh when expired. Never log or expose credentials.
+
+---
+
 ## Run
 
 ```bash
@@ -174,7 +203,7 @@ npm install
 npm run dev
 ```
 
-No environment variables. API key supplied by user in Settings UI.
+No environment variables. API key or Databricks credentials supplied by user in Settings UI.
 
 ## Mindspace Tab
 
