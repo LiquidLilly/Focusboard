@@ -60,9 +60,10 @@ function MeetingRow({ meeting, isActive, onClick }) {
     >
       <div className="flex items-start justify-between gap-2">
         <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--text-primary)', flex: 1 }}>{meeting.title}</span>
-        {meeting.processed && (
-          <span style={{ fontSize: 10, color: 'var(--accent-purple)', background: 'rgba(157,127,232,0.12)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>AI ✓</span>
-        )}
+        {meeting.processed
+          ? <span style={{ fontSize: 10, color: 'var(--accent-purple)', background: 'rgba(157,127,232,0.12)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>AI ✓</span>
+          : <span style={{ fontSize: 10, color: 'var(--text-muted)', background: 'var(--bg-base)', border: '1px solid var(--border-subtle)', borderRadius: 999, padding: '2px 6px', flexShrink: 0 }}>Unprocessed</span>
+        }
       </div>
       <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
         {formatFullDate(meeting.date)}

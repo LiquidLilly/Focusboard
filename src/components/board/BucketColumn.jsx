@@ -45,9 +45,9 @@ export default function BucketColumn({ bucket }) {
   return (
     <div
       ref={setColumnRef}
-      className="flex flex-col shrink-0 rounded-xl"
+      className="flex flex-col rounded-xl"
       style={{
-        width: 260, height: '100%',
+        flex: '1 1 260px', minWidth: 220, maxWidth: 320, height: '100%',
         background: isOver ? 'rgba(72,185,199,0.05)' : 'var(--bg-surface)',
         border: `1px solid ${isOver ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
         transition: transition || 'border-color 0.15s, background 0.15s',
@@ -62,17 +62,27 @@ export default function BucketColumn({ bucket }) {
           borderBottom: '1px solid var(--border-subtle)',
           cursor: 'grab',
           userSelect: 'none',
+          minWidth: 0,
         }}
         {...attributes}
         {...listeners}
       >
-        <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+        <span
+          title={bucket.name}
+          style={{
+            fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)',
+            textTransform: 'uppercase', letterSpacing: '0.07em',
+            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            flex: 1, minWidth: 0,
+          }}
+        >
           {bucket.name}
         </span>
         <span
           style={{
             fontSize: 10, fontWeight: 600, background: 'var(--bg-elevated)',
             color: 'var(--text-muted)', borderRadius: 999, padding: '2px 8px',
+            flexShrink: 0, marginLeft: 6,
           }}
         >
           {bucket.tasks.length}
