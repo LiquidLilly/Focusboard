@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
+import { CSS } from '@dnd-kit/utilities'
 import { Plus } from 'lucide-react'
 import useStore from '../../store/useStore'
 import TaskCard from './TaskCard'
@@ -13,7 +14,18 @@ export default function BucketColumn({ bucket }) {
   const [adding, setAdding]   = useState(false)
   const [form, setForm]       = useState({ title: '', status: 'todo', priority: 'medium', dueDate: '' })
 
-  const { setNodeRef, isOver } = useDroppable({ id: bucket.id })
+  // Column-level sortable (for reordering columns by dragging the header)
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setColumnRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: bucket.id, data: { type: 'column' } })
+
+  // Task drop zone (separate ref so tasks can still be dropped inside)
+  const { setNodeRef: setDropRef, isOver } = useDroppable({ id: bucket.id })
 
   // Important tasks sort first
   const sorted = [...bucket.tasks].sort((a, b) => {
@@ -32,16 +44,28 @@ export default function BucketColumn({ bucket }) {
 
   return (
     <div
+      ref={setColumnRef}
       className="flex flex-col shrink-0 rounded-xl"
       style={{
         width: 260, height: '100%',
         background: isOver ? 'rgba(72,185,199,0.05)' : 'var(--bg-surface)',
         border: `1px solid ${isOver ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
-        transition: 'border-color 0.15s, background 0.15s',
+        transition: transition || 'border-color 0.15s, background 0.15s',
+        transform: CSS.Transform.toString(transform),
+        opacity: isDragging ? 0 : 1,
       }}
     >
-      {/* Column header */}
-      <div className="flex items-center justify-between px-3 py-3" style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+      {/* Column header — full header area is the drag handle */}
+      <div
+        className="flex items-center justify-between px-3 py-3"
+        style={{
+          borderBottom: '1px solid var(--border-subtle)',
+          cursor: 'grab',
+          userSelect: 'none',
+        }}
+        {...attributes}
+        {...listeners}
+      >
         <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
           {bucket.name}
         </span>
@@ -56,7 +80,7 @@ export default function BucketColumn({ bucket }) {
       </div>
 
       {/* Task list */}
-      <div ref={setNodeRef} className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-2">
+      <div ref={setDropRef} className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-2">
         <SortableContext items={sorted.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {sorted.map(task => (
             <TaskCard key={task.id} task={{ ...task, bucketId: bucket.id, bucketName: bucket.name }} />

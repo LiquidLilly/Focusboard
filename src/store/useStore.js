@@ -199,6 +199,13 @@ const useStore = create((set, get) => {
       saveTasks({ buckets })
     },
 
+    reorderBuckets(orderedIds) {
+      const map = Object.fromEntries(get().buckets.map(b => [b.id, b]))
+      const buckets = orderedIds.map(id => map[id]).filter(Boolean)
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
     // ── Tasks ─────────────────────────────────────────────────────────────────
     addTask(bucketId, partial = {}) {
       const now = new Date().toISOString()

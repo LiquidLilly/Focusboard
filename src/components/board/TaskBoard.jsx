@@ -2,15 +2,16 @@ import { useState } from 'react'
 import {
   DndContext, DragOverlay, PointerSensor, useSensor, useSensors, closestCorners,
 } from '@dnd-kit/core'
-import { SortableContext, horizontalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableContext, horizontalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
 import useStore from '../../store/useStore'
 import BucketColumn from './BucketColumn'
 import TaskCard from './TaskCard'
 import { Plus } from 'lucide-react'
 
 export default function TaskBoard() {
-  const { buckets, moveTask, reorderTasks, addBucket } = useStore()
-  const [activeTask, setActiveTask] = useState(null)
+  const { buckets, moveTask, reorderTasks, reorderBuckets, addBucket } = useStore()
+  const [activeTask,   setActiveTask]   = useState(null)
+  const [activeColumn, setActiveColumn] = useState(null)
   const [addingBucket, setAddingBucket] = useState(false)
   const [newBucketName, setNewBucketName] = useState('')
 
@@ -20,7 +21,12 @@ export default function TaskBoard() {
 
   function handleDragStart(event) {
     const { active } = event
-    // Find the task
+    // Column drag — data.type is set to 'column' in BucketColumn's useSortable
+    if (active.data.current?.type === 'column') {
+      const col = buckets.find(b => b.id === active.id)
+      if (col) { setActiveColumn(col); return }
+    }
+    // Task drag
     for (const b of buckets) {
       const t = b.tasks.find(t => t.id === active.id)
       if (t) { setActiveTask({ ...t, bucketId: b.id, bucketName: b.name }); return }
@@ -30,26 +36,34 @@ export default function TaskBoard() {
   function handleDragEnd(event) {
     const { active, over } = event
     setActiveTask(null)
+    setActiveColumn(null)
     if (!over || active.id === over.id) return
 
-    // Find source bucket
+    // ── Column reorder ────────────────────────────────────────────────────────
+    if (active.data.current?.type === 'column') {
+      const oldIndex = buckets.findIndex(b => b.id === active.id)
+      const newIndex = buckets.findIndex(b => b.id === over.id)
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        reorderBuckets(arrayMove(buckets, oldIndex, newIndex).map(b => b.id))
+      }
+      return
+    }
+
+    // ── Task reorder / move ───────────────────────────────────────────────────
     let srcBucketId = null
     for (const b of buckets) {
       if (b.tasks.find(t => t.id === active.id)) { srcBucketId = b.id; break }
     }
     if (!srcBucketId) return
 
-    // Determine if dropped onto a task (reorder / cross-bucket) or onto a bucket
     let destBucketId = null
     let destIndex    = 0
 
-    // Check if over.id is a bucket id
     const overBucket = buckets.find(b => b.id === over.id)
     if (overBucket) {
       destBucketId = over.id
       destIndex    = overBucket.tasks.length
     } else {
-      // over.id is a task id
       for (const b of buckets) {
         const idx = b.tasks.findIndex(t => t.id === over.id)
         if (idx !== -1) { destBucketId = b.id; destIndex = idx; break }
@@ -59,7 +73,6 @@ export default function TaskBoard() {
     if (!destBucketId) return
 
     if (srcBucketId === destBucketId) {
-      // Reorder within same bucket
       const bucket  = buckets.find(b => b.id === srcBucketId)
       const oldIdx  = bucket.tasks.findIndex(t => t.id === active.id)
       if (oldIdx === destIndex) return
@@ -125,6 +138,32 @@ export default function TaskBoard() {
 
       {/* Drag ghost overlay */}
       <DragOverlay>
+        {activeColumn && (
+          <div
+            className="flex flex-col shrink-0 rounded-xl"
+            style={{
+              width: 260,
+              height: 120,
+              background: 'var(--bg-surface)',
+              border: '1px solid var(--border-accent)',
+              boxShadow: '0 8px 32px rgba(72,185,199,0.22)',
+              opacity: 0.85,
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              className="flex items-center justify-between px-3 py-3"
+              style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'grabbing' }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>
+                {activeColumn.name}
+              </span>
+              <span style={{ fontSize: 10, fontWeight: 600, background: 'var(--bg-elevated)', color: 'var(--text-muted)', borderRadius: 999, padding: '2px 8px' }}>
+                {activeColumn.tasks.length}
+              </span>
+            </div>
+          </div>
+        )}
         {activeTask && (
           <div style={{ opacity: 0.5, boxShadow: '0 8px 24px rgba(72,185,199,0.27)' }}>
             <TaskCard task={activeTask} isDragOverlay />
