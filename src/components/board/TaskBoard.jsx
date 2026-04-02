@@ -121,7 +121,7 @@ export default function TaskBoard() {
         </SortableContext>
 
         {/* Add bucket */}
-        <div style={{ flex: '0 0 260px', minWidth: 260, maxWidth: 260 }}>
+        <div style={{ flex: '0 0 400px', minWidth: 400, maxWidth: 400 }}>
           {addingBucket ? (
             <div className="flex flex-col gap-2 p-3 rounded-xl" style={{ background: 'var(--bg-surface)', border: '1px solid var(--border-default)' }}>
               <input
@@ -155,7 +155,7 @@ export default function TaskBoard() {
           <div
             className="flex flex-col shrink-0 rounded-xl"
             style={{
-              minWidth: 220, maxWidth: 320,
+              minWidth: 400, maxWidth: 400,
               height: 120,
               background: 'var(--bg-surface)',
               border: '1px solid var(--border-accent)',

@@ -64,6 +64,7 @@ export default function TaskCard({ task, isDragOverlay }) {
         cursor:        'default',
         transition:    'box-shadow 0.15s',
         boxShadow:     isSelected ? '0 0 0 1px var(--accent-primary)' : 'none',
+        marginBottom:  8,
       }}
       className="group flex items-stretch"
       onClick={() => setSelectedTask(isSelected ? null : task.id)}
@@ -82,20 +83,22 @@ export default function TaskCard({ task, isDragOverlay }) {
       )}
 
       {/* Content */}
-      <div style={{ flex: 1, padding: '10px 8px 10px 4px', minWidth: 0 }}>
+      <div style={{ flex: 1, padding: '14px 8px 14px 4px', minWidth: 0 }}>
         {/* Title */}
         <p style={{
-          fontSize: 13, fontWeight: 500, lineHeight: 1.4,
+          fontSize: 15, fontWeight: 500, lineHeight: 1.4,
           color: task.status === 'done' ? 'var(--text-muted)' : 'var(--text-primary)',
           textDecoration: task.status === 'done' ? 'line-through' : 'none',
           wordBreak: 'break-word',
+          display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          marginBottom: 8,
         }}>
           {task.important && <span style={{ marginRight: 4, color: 'var(--accent-orange)' }}>⚡</span>}
           {task.title}
         </p>
 
         {/* Badges row */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 6 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
           {/* Status */}
           <Badge bg={statusC.bg} color={statusC.text}>{task.status}</Badge>
 
@@ -124,7 +127,7 @@ export default function TaskCard({ task, isDragOverlay }) {
 
         {/* Subtask progress */}
         {totalSubs > 0 && (
-          <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+          <p style={{ fontSize: 12, color: 'var(--text-muted)', marginTop: 6 }}>
             {doneSubs}/{totalSubs} subtasks
           </p>
         )}
@@ -149,7 +152,7 @@ export default function TaskCard({ task, isDragOverlay }) {
 function Badge({ bg, color, border, children }) {
   return (
     <span style={{
-      fontSize: 10, fontWeight: 500, padding: '2px 7px', borderRadius: 999,
+      fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 999,
       background: bg, color, border: border || 'none', lineHeight: 1.6,
     }}>
       {children}
