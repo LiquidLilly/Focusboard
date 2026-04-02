@@ -21,7 +21,11 @@ const DEFAULT_BUCKET_NAMES = [
 ]
 
 function makeBucket(name, order) {
-  return { id: generateId(), name, order, tasks: [] }
+  return {
+    id: generateId(), name, order, tasks: [],
+    statusUpdate: { text: '', updatedAt: null },
+    statusHistory: [],
+  }
 }
 
 // ── Seed data ─────────────────────────────────────────────────────────────────
@@ -137,6 +141,16 @@ const useStore = create((set, get) => {
     saveTasks(tasksData)
     saveBrainDump(brainDump)
     saveMeetings(meetings)
+  } else {
+    // Migrate existing buckets that predate statusUpdate/statusHistory fields
+    tasksData = {
+      ...tasksData,
+      buckets: tasksData.buckets.map(b => ({
+        statusUpdate: { text: '', updatedAt: null },
+        statusHistory: [],
+        ...b,
+      })),
+    }
   }
 
   return {
@@ -195,6 +209,21 @@ const useStore = create((set, get) => {
 
     deleteBucket(id) {
       const buckets = get().buckets.filter(b => b.id !== id)
+      set({ buckets })
+      saveTasks({ buckets })
+    },
+
+    updateBucketStatus(id, text) {
+      const now = new Date().toISOString()
+      const buckets = get().buckets.map(b => {
+        if (b.id !== id) return b
+        const prev = b.statusUpdate
+        const hadText = prev?.text?.trim()
+        const history = hadText
+          ? [{ text: prev.text, updatedAt: prev.updatedAt }, ...(b.statusHistory || [])].slice(0, 5)
+          : (b.statusHistory || [])
+        return { ...b, statusUpdate: { text, updatedAt: now }, statusHistory: history }
+      })
       set({ buckets })
       saveTasks({ buckets })
     },

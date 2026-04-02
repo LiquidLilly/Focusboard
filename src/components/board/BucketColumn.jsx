@@ -1,14 +1,199 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { useDroppable } from '@dnd-kit/core'
 import { CSS } from '@dnd-kit/utilities'
-import { Plus } from 'lucide-react'
+import { Plus, Pencil, History } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 import useStore from '../../store/useStore'
 import TaskCard from './TaskCard'
 
 const STATUS_OPTIONS   = ['backlog', 'todo', 'in-progress', 'done']
 const PRIORITY_OPTIONS = ['low', 'medium', 'high', 'urgent']
 
+// ── Age-based dot color ───────────────────────────────────────────────────────
+function dotColor(updatedAt) {
+  if (!updatedAt) return 'var(--accent-green)'
+  const days = (Date.now() - new Date(updatedAt).getTime()) / (1000 * 60 * 60 * 24)
+  if (days > 14) return 'var(--accent-red)'
+  if (days > 7)  return 'var(--accent-orange)'
+  return 'var(--accent-green)'
+}
+
+// ── Status Update sub-component ───────────────────────────────────────────────
+function StatusUpdateSection({ bucket }) {
+  const { updateBucketStatus } = useStore()
+  const [editing, setEditing]       = useState(false)
+  const [draft, setDraft]           = useState('')
+  const [showHistory, setShowHistory] = useState(false)
+  const [hovered, setHovered]       = useState(false)
+  const textareaRef = useRef(null)
+
+  const su = bucket.statusUpdate || { text: '', updatedAt: null }
+  const history = bucket.statusHistory || []
+  const hasText = su.text?.trim()
+
+  function startEdit() {
+    setDraft(su.text || '')
+    setEditing(true)
+    // Focus after render
+    setTimeout(() => textareaRef.current?.focus(), 0)
+  }
+
+  function save() {
+    const text = draft.trim()
+    updateBucketStatus(bucket.id, text)
+    setEditing(false)
+    setShowHistory(false)
+  }
+
+  function cancel() {
+    setEditing(false)
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); save() }
+    if (e.key === 'Escape') cancel()
+  }
+
+  return (
+    <div
+      style={{
+        borderTop: '1px solid var(--border-subtle)',
+        borderBottom: '1px solid var(--border-subtle)',
+        background: hasText && !editing ? '#1a1f1a' : 'transparent',
+        position: 'relative',
+      }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => { setHovered(false); setShowHistory(false) }}
+    >
+      {editing ? (
+        // ── Edit mode ───────────────────────────────────────────────────────
+        <div style={{ padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <textarea
+            ref={textareaRef}
+            value={draft}
+            onChange={e => setDraft(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="What's the current status? Where did you leave off?"
+            rows={3}
+            style={{
+              width: '100%', fontSize: 12, lineHeight: 1.5,
+              background: 'var(--bg-elevated)', border: '1px solid var(--border-default)',
+              borderRadius: 6, color: 'var(--text-primary)', outline: 'none',
+              resize: 'none', padding: '6px 8px', boxSizing: 'border-box',
+              fontFamily: 'inherit',
+            }}
+          />
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={save}
+              style={{
+                flex: 1, padding: '4px 8px', fontSize: 11, fontWeight: 500,
+                background: 'var(--accent-primary)', color: '#0d1117',
+                border: 'none', borderRadius: 5, cursor: 'pointer',
+              }}
+            >
+              Save
+            </button>
+            <button
+              onClick={cancel}
+              style={{
+                flex: 1, padding: '4px 8px', fontSize: 11,
+                background: 'none', color: 'var(--text-secondary)',
+                border: '1px solid var(--border-default)', borderRadius: 5, cursor: 'pointer',
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+          <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>Ctrl+Enter to save · Esc to cancel</span>
+        </div>
+      ) : hasText ? (
+        // ── Has status update ────────────────────────────────────────────────
+        <div style={{ padding: '7px 10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
+            {/* Age dot */}
+            <span style={{
+              width: 7, height: 7, borderRadius: '50%', flexShrink: 0,
+              background: dotColor(su.updatedAt),
+              boxShadow: `0 0 4px ${dotColor(su.updatedAt)}88`,
+            }} />
+            <span style={{ fontSize: 10, color: 'var(--text-muted)', flex: 1 }}>
+              Last update · {su.updatedAt ? formatDistanceToNow(new Date(su.updatedAt), { addSuffix: true }) : '—'}
+            </span>
+            {/* History toggle */}
+            {history.length > 0 && (
+              <button
+                onClick={() => setShowHistory(v => !v)}
+                title="Show history"
+                style={{
+                  background: 'none', border: 'none', cursor: 'pointer',
+                  color: showHistory ? 'var(--accent-primary)' : 'var(--text-muted)',
+                  padding: 2, display: 'flex', alignItems: 'center',
+                  opacity: hovered ? 1 : 0, transition: 'opacity 0.1s',
+                }}
+              >
+                <History size={11} />
+              </button>
+            )}
+            {/* Edit button */}
+            <button
+              onClick={startEdit}
+              title="Edit status"
+              style={{
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: 'var(--text-muted)', padding: 2, display: 'flex', alignItems: 'center',
+                opacity: hovered ? 1 : 0, transition: 'opacity 0.1s',
+              }}
+            >
+              <Pencil size={11} />
+            </button>
+          </div>
+          <p style={{
+            fontSize: 12, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.4,
+            display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+          }}>
+            {su.text}
+          </p>
+
+          {/* History dropdown */}
+          {showHistory && history.length > 0 && (
+            <div style={{
+              marginTop: 6, borderTop: '1px solid var(--border-subtle)',
+              paddingTop: 6, display: 'flex', flexDirection: 'column', gap: 6,
+            }}>
+              {history.map((h, i) => (
+                <div key={i} style={{ opacity: 0.7 }}>
+                  <span style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                    {h.updatedAt ? formatDistanceToNow(new Date(h.updatedAt), { addSuffix: true }) : '—'}
+                  </span>
+                  <p style={{ fontSize: 11, color: 'var(--text-muted)', margin: '1px 0 0', lineHeight: 1.35 }}>
+                    {h.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        // ── Empty placeholder ────────────────────────────────────────────────
+        <button
+          onClick={startEdit}
+          style={{
+            width: '100%', padding: '7px 10px', textAlign: 'left',
+            background: 'none', border: 'none', cursor: 'pointer',
+            fontSize: 12, fontStyle: 'italic', color: 'var(--text-muted)',
+          }}
+        >
+          + Add status update
+        </button>
+      )}
+    </div>
+  )
+}
+
+// ── BucketColumn ──────────────────────────────────────────────────────────────
 export default function BucketColumn({ bucket }) {
   const { addTask } = useStore()
   const [adding, setAdding]   = useState(false)
@@ -47,12 +232,14 @@ export default function BucketColumn({ bucket }) {
       ref={setColumnRef}
       className="flex flex-col rounded-xl"
       style={{
-        flex: '1 1 260px', minWidth: 220, maxWidth: 320, height: '100%',
+        flex: '0 0 260px', minWidth: 260, maxWidth: 260, height: '100%',
+        maxHeight: 'calc(100vh - 120px)',
         background: isOver ? 'rgba(72,185,199,0.05)' : 'var(--bg-surface)',
         border: `1px solid ${isOver ? 'var(--border-accent)' : 'var(--border-subtle)'}`,
         transition: transition || 'border-color 0.15s, background 0.15s',
         transform: CSS.Transform.toString(transform),
         opacity: isDragging ? 0 : 1,
+        scrollSnapAlign: 'start',
       }}
     >
       {/* Column header — full header area is the drag handle */}
@@ -89,8 +276,11 @@ export default function BucketColumn({ bucket }) {
         </span>
       </div>
 
+      {/* Status update section */}
+      <StatusUpdateSection bucket={bucket} />
+
       {/* Task list */}
-      <div ref={setDropRef} className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-2">
+      <div ref={setDropRef} style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 4px', display: 'flex', flexDirection: 'column', gap: 8 }}>
         <SortableContext items={sorted.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {sorted.map(task => (
             <TaskCard key={task.id} task={{ ...task, bucketId: bucket.id, bucketName: bucket.name }} />
