@@ -2,27 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── V3 Color Tokens ──────────────────────────────────────────────────────── */
 :root {
-  --bg-base:        #0d1117;
-  --bg-surface:     #161b22;
-  --bg-elevated:    #1f2937;
-  --bg-overlay:     #273244;
-  --accent-primary: #48b9c7;
-  --accent-orange:  #e9a84c;
-  --accent-red:     #e05c5c;
-  --accent-green:   #4caf82;
-  --accent-purple:  #9d7fe8;
-  --text-primary:   #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted:     #484f58;
-  --border-subtle:  #21262d;
-  --border-default: #30363d;
-  --border-accent:  #48b9c7;
+  --bg-base:         #0f1117;
+  --bg-surface:      #181c25;
+  --bg-raised:       #1e2330;
+  --bg-overlay:      #252a38;
+
+  --accent:          #5b9cf6;
+  --accent-warm:     #e8a44a;
+  --accent-green:    #4caf82;
+  --accent-red:      #e05c5c;
+  --accent-purple:   #9d7fe8;
+  --accent-muted:    #3a4560;
+
+  --text-primary:    #e8edf5;
+  --text-secondary:  #8b95a8;
+  --text-muted:      #4a5268;
+  --text-inverse:    #0f1117;
+
+  --border-subtle:   #1e2330;
+  --border-default:  #2a3045;
+  --border-focus:    #5b9cf6;
+
+  --capture-accent:  #5b9cf6;
+  --reflect-accent:  #9d7fe8;
 }
 
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 html, body, #root {
   height: 100%;
@@ -33,61 +40,70 @@ html, body, #root {
 body {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: 14px;
+  line-height: 1.6;
   background-color: var(--bg-base);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;
 }
 
-/* Scrollbars */
-::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
-}
-::-webkit-scrollbar-track {
-  background: var(--border-default);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--accent-primary);
-  border-radius: 2px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #5ecfdd;
-}
+/* ── Scrollbars ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: var(--border-default); }
+::-webkit-scrollbar-thumb  { background: var(--accent-muted); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent); }
 
-button { font-family: inherit; cursor: pointer; }
+/* ── Inputs / Buttons base ────────────────────────────────────────────────── */
+button       { font-family: inherit; cursor: pointer; }
 input, textarea, select { font-family: inherit; }
-
 input[type="date"] { color-scheme: dark; }
 
+/* ── Selection ────────────────────────────────────────────────────────────── */
 ::selection {
-  background: rgba(72, 185, 199, 0.25);
+  background: rgba(91, 156, 246, 0.25);
   color: var(--text-primary);
 }
 
-/* Focus rings */
+/* ── Focus rings ──────────────────────────────────────────────────────────── */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid var(--accent-primary);
+  outline: 2px solid var(--border-focus);
   outline-offset: 1px;
 }
 
-/* Streaming text cursor blink */
+/* ── Completion animation ─────────────────────────────────────────────────── */
+@keyframes complete-out {
+  from { transform: scale(1);    opacity: 1; }
+  to   { transform: scale(0.95); opacity: 0; }
+}
+.completing {
+  animation: complete-out 200ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* ── Streaming cursor ─────────────────────────────────────────────────────── */
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  50%       { opacity: 0; }
 }
 .streaming-cursor::after {
   content: '▋';
   display: inline-block;
-  color: var(--accent-primary);
+  color: var(--accent);
   animation: blink 1s step-end infinite;
   margin-left: 1px;
 }
 
-/* Drag ghost */
+/* ── Ambient reminder fade ────────────────────────────────────────────────── */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.reminder-fade { animation: fade-in 300ms ease-in; }
+
+/* ── DnD drag ghost ───────────────────────────────────────────────────────── */
 .dnd-ghost {
   opacity: 0.5;
-  box-shadow: 0 8px 24px rgba(72, 185, 199, 0.27);
+  box-shadow: 0 8px 24px rgba(91, 156, 246, 0.2);
 }

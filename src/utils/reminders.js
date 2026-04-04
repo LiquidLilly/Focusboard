@@ -1,33 +1,28 @@
 // Ambient reminder pool — rotates in the header every 4 minutes
-// Organized by category but shuffled at runtime
+// Per v3 spec — organized by category, shuffled at runtime
 
 export const REMINDERS = [
-  // Focus / ADHD
+  // Focus
   "One thing at a time.",
   "What's the actual next step?",
-  "Is this the most important thing right now?",
-  "Name the task out loud before starting.",
   "Done is better than perfect.",
-  "Boredom is a signal, not a verdict.",
+  "Name the task before starting it.",
 
-  // Curiosity / Meetings / Authority
+  // Meetings / curiosity
   "Ask why.",
   "Curiosity is competence.",
-  "You're allowed to not know yet.",
   "A good question is a contribution.",
-  "Ask one question you're afraid to ask.",
-  "Understanding > impressing.",
+  "You're allowed to not know yet.",
 
-  // Breathing / Regulation
-  "Breathe out longer than you breathe in.",
-  "Your nervous system is adjustable.",
+  // Regulation
+  "Breathe out longer than in.",
   "Slow down to speed up.",
-  "Ground yourself: feet on floor, one breath.",
+  "Ground yourself: feet on floor.",
 
   // Self-compassion
-  "You're doing better than you think.",
-  "Mistakes are information.",
   "You don't have to earn your place here.",
+  "Mistakes are information.",
   "Be as fair to yourself as you'd be to a friend.",
-  "Progress, not performance.",
+  "You prepared. That counts.",
+  "Being challenged is not the same as being wrong.",
 ]

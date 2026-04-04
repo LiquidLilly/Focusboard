@@ -2,12 +2,12 @@ import { create } from 'zustand'
 import { generateId } from '../utils/uuid'
 import {
   loadTasks, saveTasks,
-  loadBrainDump, saveBrainDump,
-  loadMeetings, saveMeetings,
   loadSettings, saveSettings,
-  loadPlanner, savePlanner,
+  loadCapture, saveCapture,
+  loadToday, saveToday,
+  loadReflect, saveReflect,
+  loadOneOnOnes, saveOneOnOnes,
 } from '../utils/storage'
-import { tomorrowISO } from '../utils/dates'
 
 // ── Default buckets ───────────────────────────────────────────────────────────
 const DEFAULT_BUCKET_NAMES = [
@@ -22,7 +22,7 @@ const DEFAULT_BUCKET_NAMES = [
 
 function makeBucket(name, order) {
   return {
-    id: generateId(), name, order, tasks: [],
+    id: generateId(), name, order, isCore: true, tasks: [],
     statusUpdate: { text: '', updatedAt: null },
     statusHistory: [],
   }
@@ -31,8 +31,6 @@ function makeBucket(name, order) {
 // ── Seed data ─────────────────────────────────────────────────────────────────
 function createSeedData() {
   const buckets = DEFAULT_BUCKET_NAMES.map((name, i) => makeBucket(name, i))
-
-  // Seed tasks
   const now = new Date().toISOString()
   const soon = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
 
@@ -40,144 +38,92 @@ function createSeedData() {
     id: generateId(), title: 'Review site startup checklist',
     description: 'Go through the latest version and flag any gaps.',
     status: 'in-progress', priority: 'high', dueDate: soon,
-    important: true, subtasks: [
+    important: true,
+    subtasks: [
       { id: generateId(), title: 'Check equipment readiness', done: false },
       { id: generateId(), title: 'Confirm team sign-offs', done: false },
     ],
-    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+    sourceType: 'manual', sourceId: null, createdAt: now, updatedAt: now,
   })
 
   buckets[1].tasks.push({
     id: generateId(), title: 'Validate MES batch record changes',
-    description: '',
-    status: 'todo', priority: 'medium', dueDate: null,
-    important: false, subtasks: [],
-    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+    description: '', status: 'todo', priority: 'medium', dueDate: null,
+    important: false, subtasks: [], sourceType: 'manual', sourceId: null,
+    createdAt: now, updatedAt: now,
   })
 
   buckets[4].tasks.push({
     id: generateId(), title: 'Update APR trending charts for Q1',
     description: 'Include the new process parameters agreed in March.',
     status: 'backlog', priority: 'low', dueDate: null,
-    important: false, subtasks: [],
-    sourceType: 'manual', meetingId: null, createdAt: now, updatedAt: now,
+    important: false, subtasks: [], sourceType: 'manual', sourceId: null,
+    createdAt: now, updatedAt: now,
   })
+
+  buckets[0].statusUpdate = {
+    text: 'IQ/OQ pending cleaning validation sign-off from QA.',
+    updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+  }
 
   return { buckets }
 }
 
-function createSeedBrainDump() {
-  const now = new Date().toISOString()
-  return [
-    {
-      id: generateId(), text: 'Need to follow up with QA about the cleaning SOP — they mentioned a revision was coming',
-      important: true, createdAt: now,
-    },
-    {
-      id: generateId(), text: 'Contamination RCA meeting scheduled — check if action items from last time were closed',
-      important: false, createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-    {
-      id: generateId(), text: 'Ask about the timeline for Process School module 3 materials',
-      important: false, createdAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
-    },
-  ]
-}
-
-function createSeedMeeting(buckets) {
-  const meetingId = generateId()
-  const taskId = generateId()
-  const now = new Date().toISOString()
-
-  // Add the linked task to bucket 5 (Process Cleaning)
-  const task = {
-    id: taskId, title: 'Review updated cleaning validation protocol',
-    description: 'From the March 28 Cross-Functional meeting. QA expects comments by EOW.',
-    status: 'todo', priority: 'high',
-    dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-    important: true, subtasks: [],
-    sourceType: 'meeting', meetingId,
-    createdAt: now, updatedAt: now,
-  }
-  buckets[5].tasks.push(task)
-
-  const meeting = {
-    id: meetingId,
-    title: 'Cross-Functional Site Readiness Review',
-    date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    attendees: 'Sarah (QA), Mike (Engineering), Priya (Supply Chain), Raj (MES)',
-    rawNotes: `Discussed site startup timeline. QA flagged cleaning validation protocol needs review before IQ/OQ. Mike to check equipment calibration schedule. Supply chain confirmed resin delivery for April 12. Priya mentioned the vendor audit is next month — unclear if anyone has started prep. Raj said the MES batch record changes are 80% done but need sign-off from QA before go-live.`,
-    processed: true,
-    extractedData: {
-      actionItems: [{ id: generateId(), text: 'Review updated cleaning validation protocol', bucketName: 'Process Cleaning' }],
-      decisions: ['Site startup IQ/OQ cannot proceed until cleaning validation is signed off'],
-      followUps: ['Check equipment calibration schedule with Mike', 'Confirm MES batch record QA sign-off timeline with Raj'],
-      deadlines: ['Resin delivery April 12', 'Vendor audit next month'],
-      mightHaveMissed: ['Vendor audit prep was flagged as uncertain — no owner was assigned. This could land on you if no one else picks it up.', 'MES sign-off dependency on QA could delay go-live — worth flagging now rather than waiting.'],
-      questionsToAsk: ['Who owns the vendor audit preparation?', 'What is the exact deadline for MES QA sign-off?'],
-    },
-    createdAt: now,
-  }
-
-  return { meeting, buckets }
-}
-
 // ── Store ─────────────────────────────────────────────────────────────────────
 const useStore = create((set, get) => {
-  // Load or seed
+  // Load or seed tasks
   let tasksData = loadTasks()
-  let brainDump  = loadBrainDump()
-  let meetings   = loadMeetings()
-  const settings = loadSettings()
-  const planner  = loadPlanner()
-
   if (!tasksData) {
-    const seed = createSeedData()
-    const bdSeed = createSeedBrainDump()
-    const { meeting, buckets } = createSeedMeeting(seed.buckets)
-    tasksData = { buckets }
-    brainDump = bdSeed
-    meetings = [meeting]
+    tasksData = createSeedData()
     saveTasks(tasksData)
-    saveBrainDump(brainDump)
-    saveMeetings(meetings)
   } else {
-    // Migrate existing buckets that predate statusUpdate/statusHistory fields
+    // Migrate: ensure all buckets have statusUpdate + statusHistory + isCore
     tasksData = {
       ...tasksData,
       buckets: tasksData.buckets.map(b => ({
         statusUpdate: { text: '', updatedAt: null },
         statusHistory: [],
+        isCore: DEFAULT_BUCKET_NAMES.includes(b.name),
         ...b,
       })),
     }
   }
 
+  const settings   = loadSettings()
+  const capture    = loadCapture()
+  const today      = loadToday()
+  const reflect    = loadReflect()
+  const oneonones  = loadOneOnOnes()
+
+  // Reset today state if it's a new day
+  const todayDate = new Date().toISOString().slice(0, 10)
+  const todayState = today.date === todayDate
+    ? today
+    : { date: todayDate, intentions: [], howIWantToShowUp: '', meetingNotes: {} }
+
   return {
     // ── State ─────────────────────────────────────────────────────────────────
-    buckets:   tasksData.buckets,
-    brainDump,
-    meetings,
+    buckets:    tasksData.buckets,
     settings,
-    planner,
+    capture,
+    today:      todayState,
+    reflect,
+    oneonones,
 
-    // UI state
-    activeView:       'board',   // 'board' | 'planner'
-    leftPanelOpen:    true,
-    rightPanelOpen:   true,
-    selectedTaskId:   null,
-    settingsOpen:     false,
-    activeMeetingId:  null,
-    toast:            null,
-    toastTimer:       null,
+    // UI
+    activeView:      'today',   // 'today' | 'capture' | 'board' | 'reflect'
+    selectedTaskId:  null,
+    settingsOpen:    false,
+    captureOpen:     false,     // quick capture overlay
+    toast:           null,
+    toastTimer:      null,
+    morningDone:     todayState.intentions.length > 0 || todayState.howIWantToShowUp !== '',
 
     // ── Navigation ────────────────────────────────────────────────────────────
-    setActiveView: (v)       => set({ activeView: v }),
-    setLeftPanel:  (open)    => set({ leftPanelOpen: open }),
-    setRightPanel: (open)    => set({ rightPanelOpen: open }),
-    setSelectedTask: (id)    => set({ selectedTaskId: id }),
-    setSettingsOpen: (open)  => set({ settingsOpen: open }),
-    setActiveMeeting: (id)   => set({ activeMeetingId: id }),
+    setActiveView:   (v)    => set({ activeView: v }),
+    setSelectedTask: (id)   => set({ selectedTaskId: id }),
+    setSettingsOpen: (open) => set({ settingsOpen: open }),
+    setCaptureOpen:  (open) => set({ captureOpen: open }),
 
     // ── Toast ─────────────────────────────────────────────────────────────────
     showToast(msg) {
@@ -196,7 +142,12 @@ const useStore = create((set, get) => {
 
     // ── Buckets ───────────────────────────────────────────────────────────────
     addBucket(name) {
-      const buckets = [...get().buckets, makeBucket(name, get().buckets.length)]
+      const buckets = [...get().buckets, {
+        id: generateId(), name, order: get().buckets.length,
+        isCore: false, tasks: [],
+        statusUpdate: { text: '', updatedAt: null },
+        statusHistory: [],
+      }]
       set({ buckets })
       saveTasks({ buckets })
     },
@@ -239,7 +190,7 @@ const useStore = create((set, get) => {
     addTask(bucketId, partial = {}) {
       const now = new Date().toISOString()
       const task = {
-        id: generateId(),
+        id:          generateId(),
         title:       partial.title       || 'New task',
         description: partial.description || '',
         status:      partial.status      || 'todo',
@@ -248,7 +199,7 @@ const useStore = create((set, get) => {
         important:   partial.important   || false,
         subtasks:    partial.subtasks    || [],
         sourceType:  partial.sourceType  || 'manual',
-        meetingId:   partial.meetingId   || null,
+        sourceId:    partial.sourceId    || null,
         createdAt: now, updatedAt: now,
       }
       const buckets = get().buckets.map(b =>
@@ -272,8 +223,7 @@ const useStore = create((set, get) => {
 
     deleteTask(taskId) {
       const buckets = get().buckets.map(b => ({
-        ...b,
-        tasks: b.tasks.filter(t => t.id !== taskId),
+        ...b, tasks: b.tasks.filter(t => t.id !== taskId),
       }))
       set({ buckets, selectedTaskId: get().selectedTaskId === taskId ? null : get().selectedTaskId })
       saveTasks({ buckets })
@@ -308,7 +258,6 @@ const useStore = create((set, get) => {
       saveTasks({ buckets })
     },
 
-    // Helper: find task by id
     getTask(taskId) {
       for (const b of get().buckets) {
         const t = b.tasks.find(t => t.id === taskId)
@@ -353,127 +302,185 @@ const useStore = create((set, get) => {
       })
     },
 
-    // ── Brain Dump ────────────────────────────────────────────────────────────
-    addBrainDumpItem(text) {
-      const item = { id: generateId(), text, important: false, createdAt: new Date().toISOString() }
-      const brainDump = [item, ...get().brainDump]
-      set({ brainDump })
-      saveBrainDump(brainDump)
+    // ── Capture ───────────────────────────────────────────────────────────────
+    addCaptureItem(text, opts = {}) {
+      const item = {
+        id:        generateId(),
+        text,
+        important: opts.important  || false,
+        dueDate:   opts.dueDate    || null,
+        bucketId:  opts.bucketId   || null,
+        done:      false,
+        createdAt: new Date().toISOString(),
+        archivedAt: null,
+      }
+      const capture = [item, ...get().capture]
+      set({ capture })
+      saveCapture(capture)
       return item.id
     },
 
-    updateBrainDumpItem(id, updates) {
-      const brainDump = get().brainDump.map(i => i.id === id ? { ...i, ...updates } : i)
-      set({ brainDump })
-      saveBrainDump(brainDump)
+    updateCaptureItem(id, updates) {
+      const capture = get().capture.map(i => i.id === id ? { ...i, ...updates } : i)
+      set({ capture })
+      saveCapture(capture)
     },
 
-    deleteBrainDumpItem(id) {
-      const brainDump = get().brainDump.filter(i => i.id !== id)
-      set({ brainDump })
-      saveBrainDump(brainDump)
+    deleteCaptureItem(id) {
+      const capture = get().capture.filter(i => i.id !== id)
+      set({ capture })
+      saveCapture(capture)
     },
 
-    sendBrainDumpToBoard(itemId, bucketId) {
-      const item = get().brainDump.find(i => i.id === itemId)
+    archiveCaptureItem(id) {
+      const capture = get().capture.map(i =>
+        i.id === id ? { ...i, done: true, archivedAt: new Date().toISOString() } : i
+      )
+      set({ capture })
+      saveCapture(capture)
+    },
+
+    sendCaptureToBoard(itemId, bucketId) {
+      const item = get().capture.find(i => i.id === itemId)
       if (!item) return
-      get().addTask(bucketId, { title: item.text, sourceType: 'braindump', important: item.important })
-      get().deleteBrainDumpItem(itemId)
+      get().addTask(bucketId, {
+        title: item.text,
+        important: item.important,
+        dueDate: item.dueDate,
+        sourceType: 'capture',
+        sourceId: itemId,
+      })
+      get().archiveCaptureItem(itemId)
       get().showToast('Sent to board')
     },
 
-    // ── Meetings ──────────────────────────────────────────────────────────────
-    saveMeeting(meeting) {
-      const existing = get().meetings.findIndex(m => m.id === meeting.id)
-      const meetings = existing >= 0
-        ? get().meetings.map(m => m.id === meeting.id ? meeting : m)
-        : [meeting, ...get().meetings]
-      set({ meetings })
-      saveMeetings(meetings)
-      return meeting
+    sendCaptureToToday(itemId) {
+      const item = get().capture.find(i => i.id === itemId)
+      if (!item) return false
+      const result = get().addIntention({ text: item.text, sourceType: 'capture', sourceId: itemId })
+      if (result) get().archiveCaptureItem(itemId)
+      return result
     },
 
-    deleteMeeting(id) {
-      const meetings = get().meetings.filter(m => m.id !== id)
-      set({ meetings })
-      saveMeetings(meetings)
+    // ── Today ─────────────────────────────────────────────────────────────────
+    updateToday(updates) {
+      const today = { ...get().today, ...updates }
+      set({ today })
+      saveToday(today)
     },
 
-    addTaskFromMeeting(bucketId, taskData) {
-      const id = get().addTask(bucketId, { ...taskData, sourceType: 'meeting' })
-      get().showToast('Added to board')
-      return id
+    completeMorningFlow(intentions, howIWantToShowUp) {
+      const date = new Date().toISOString().slice(0, 10)
+      const today = {
+        ...get().today,
+        date,
+        intentions: intentions.map(text => ({
+          id: generateId(), text,
+          sourceType: 'typed', sourceId: null, done: false,
+        })),
+        howIWantToShowUp,
+      }
+      set({ today, morningDone: true })
+      saveToday(today)
     },
 
-    // ── Planner ───────────────────────────────────────────────────────────────
-    getPlannerDay(date) {
-      return get().planner[date] || []
-    },
-
-    setPlannerSlots(date, slots) {
-      const planner = { ...get().planner, [date]: slots }
-      set({ planner })
-      savePlanner(planner)
-    },
-
-    addPlannerSlot(date, slotData) {
-      const slots = get().getPlannerDay(date)
-      if (slots.length >= 5) {
-        get().showToast("Tomorrow is full — remove a slot first")
+    addIntention(partial) {
+      const { today } = get()
+      if (today.intentions.length >= 3) {
+        get().showToast('3 is enough. Which 3 matter most?')
         return false
       }
-      const slot = {
-        id:          generateId(),
-        date,
-        order:       slots.length + 1,
-        title:       slotData.title       || '',
-        bucketName:  slotData.bucketName  || null,
-        taskId:      slotData.taskId      || null,
-        important:   slotData.important   || false,
-        done:        false,
-        timeContext: slotData.timeContext  || null,
+      const intention = {
+        id:         generateId(),
+        text:       partial.text       || '',
+        sourceType: partial.sourceType || 'typed',
+        sourceId:   partial.sourceId   || null,
+        done:       false,
       }
-      const updated = [...slots, slot]
-      const planner = { ...get().planner, [date]: updated }
-      set({ planner })
-      savePlanner(planner)
-      return slot.id
+      const updated = { ...today, intentions: [...today.intentions, intention] }
+      set({ today: updated, morningDone: true })
+      saveToday(updated)
+      return true
     },
 
-    updatePlannerSlot(date, slotId, updates) {
-      const slots = get().getPlannerDay(date).map(s =>
-        s.id === slotId ? { ...s, ...updates } : s
-      )
-      // If marking done and slot has a linked task, update that task too
-      if (updates.done === true) {
-        const slot = get().getPlannerDay(date).find(s => s.id === slotId)
-        if (slot?.taskId) {
-          get().updateTask(slot.taskId, { status: 'done' })
-        }
+    toggleIntention(id) {
+      const today = {
+        ...get().today,
+        intentions: get().today.intentions.map(i =>
+          i.id === id ? { ...i, done: !i.done } : i
+        ),
       }
-      const planner = { ...get().planner, [date]: slots }
-      set({ planner })
-      savePlanner(planner)
+      set({ today })
+      saveToday(today)
     },
 
-    deletePlannerSlot(date, slotId) {
-      const slots = get().getPlannerDay(date).filter(s => s.id !== slotId)
-      const planner = { ...get().planner, [date]: slots }
-      set({ planner })
-      savePlanner(planner)
+    updateMeetingNotes(eventId, updates) {
+      const today = {
+        ...get().today,
+        meetingNotes: {
+          ...get().today.meetingNotes,
+          [eventId]: { ...(get().today.meetingNotes[eventId] || {}), ...updates },
+        },
+      }
+      set({ today })
+      saveToday(today)
     },
 
-    pinTaskToTomorrow(taskId) {
-      const task = get().getTask(taskId)
-      if (!task) return false
-      const bucket = get().getTaskBucket(taskId)
-      const date = tomorrowISO()
-      return get().addPlannerSlot(date, {
-        title:      task.title,
-        bucketName: bucket?.name || null,
-        taskId,
-        important:  task.important,
-      })
+    // ── Reflect ───────────────────────────────────────────────────────────────
+    addReflectEntry(entry) {
+      const item = {
+        id:            generateId(),
+        type:          entry.type || 'hard-moment',
+        title:         entry.title || null,
+        userText:      entry.userText || '',
+        claudeResponse: entry.claudeResponse || '',
+        createdAt:     new Date().toISOString(),
+      }
+      const reflect = [item, ...get().reflect]
+      set({ reflect })
+      saveReflect(reflect)
+      return item.id
+    },
+
+    updateReflectEntry(id, updates) {
+      const reflect = get().reflect.map(e => e.id === id ? { ...e, ...updates } : e)
+      set({ reflect })
+      saveReflect(reflect)
+    },
+
+    deleteReflectEntry(id) {
+      const reflect = get().reflect.filter(e => e.id !== id)
+      set({ reflect })
+      saveReflect(reflect)
+    },
+
+    // ── One-on-ones ───────────────────────────────────────────────────────────
+    addOneOnOne(data) {
+      const item = {
+        id:                   generateId(),
+        personName:           data.personName || '',
+        cadence:              data.cadence    || '',
+        bringUp:              [],
+        unclear:              [],
+        howIWantToShowUp:     '',
+        linkedMeetingPattern: null,
+      }
+      const oneonones = [...get().oneonones, item]
+      set({ oneonones })
+      saveOneOnOnes(oneonones)
+      return item.id
+    },
+
+    updateOneOnOne(id, updates) {
+      const oneonones = get().oneonones.map(o => o.id === id ? { ...o, ...updates } : o)
+      set({ oneonones })
+      saveOneOnOnes(oneonones)
+    },
+
+    deleteOneOnOne(id) {
+      const oneonones = get().oneonones.filter(o => o.id !== id)
+      set({ oneonones })
+      saveOneOnOnes(oneonones)
     },
   }
 })
